@@ -70,6 +70,8 @@ wrefresh(imScr->win->window);\
     else if (IMSCR_CURS_Y == 0) {\
         if (IMSCR_MEM_Y > 0) {\
             wscrl(imScr->win->window, -1);\
+            mvwprintw(imScr->win->window, IMSCR_CURS_Y, 0, "%s",\
+            IMSCR_CURLINE_BUF);\
             IMSCR_MEM_Y --;\
             IMSCR_CURS_X = min(IMSCR_CURLINE->len, IMSCR_CURS_X);\
             IMSCR_MEM_X = IMSCR_CURS_X;\
@@ -90,9 +92,11 @@ wrefresh(imScr->win->window);\
     if (IMSCR_MEM_Y == imScr->nLines - 1) {\
         if (IMSCR_MEM_X == IMSCR_CURLINE->len) {}\
         else { IMSCR_CURS_X = IMSCR_CURLINE->len; IMSCR_MEM_X = IMSCR_CURS_X; }\
-    } else if (IMSCR_CURS_Y == imScr->win->wCursLines) {\
+    } else if (IMSCR_CURS_Y == imScr->win->wCursLines - 1) {\
         wscrl(imScr->win->window, 1);\
         IMSCR_MEM_Y ++;\
+        mvwprintw(imScr->win->window, IMSCR_CURS_Y, 0, "%s",\
+        IMSCR_CURLINE_BUF);\
         IMSCR_CURS_X = min(IMSCR_CURS_X, IMSCR_CURLINE->len);\
         IMSCR_MEM_X = IMSCR_CURS_X;\
     } else {\
@@ -114,6 +118,8 @@ wrefresh(imScr->win->window);\
     } else if (IMSCR_MEM_Y > 0) {\
         wscrl(imScr->win->window, -1);\
         IMSCR_MEM_Y --;\
+        mvwprintw(imScr->win->window, IMSCR_CURS_Y, 0, "%s",\
+        IMSCR_CURLINE_BUF);\
         IMSCR_CURS_X = IMSCR_CURLINE->len;\
         IMSCR_MEM_X = IMSCR_CURS_X;\
     } else { }\
@@ -129,6 +135,8 @@ wrefresh(imScr->win->window);\
     } else if (IMSCR_MEM_Y < imScr->nLines) {\
         wscrl(imScr->win->window, 1);\
         IMSCR_MEM_Y ++;\
+        mvwprintw(imScr->win->window, IMSCR_CURS_Y, 0, "%s",\
+        IMSCR_CURLINE_BUF);\
         IMSCR_CURS_X = 0;\
         IMSCR_MEM_X = 0;\
     } else {}\
@@ -157,7 +165,9 @@ typedef struct subWindow {
     WINDOW* window;
     char* title;
 } subWin;
-subWin* NewWindow(char* filename, int begY, int begX, int endY, int endX);
+subWin* NewWindow(\
+char* filename, 
+int begY, int begX, int endY, int endX);
 
 // Single line structure for text
 typedef struct inputModeLine {

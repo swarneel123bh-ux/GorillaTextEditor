@@ -273,8 +273,8 @@ void ProcessKeyhit() {
                 else {
                     // Scroll the window up, move cursor UP by one line
                     // Insert new line from there
-                    wscrl(imScr->win->window, 2);
-                    IMSCR_CURS_Y -= 2;
+                    wscrl(imScr->win->window, 1);
+                    IMSCR_CURS_Y -= 1;
                     IMSCR_CURS_MOVE();
                     IMSCR_CRLF();
                 }
