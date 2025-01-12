@@ -85,9 +85,11 @@ void LoadFile() {
         // Fix the len
         IMSCR_CURLINE->len += strlen(buffer);   
         // Print the line out
-        mvwprintw(imScr->win->window, IMSCR_CURS_POS, "%s", IMSCR_CURLINE_BUF); 
+        mvwprintw(imScr->win->window, IMSCR_CURS_POS, "%s", buffer); 
         memset(buffer, 0, sizeof(char) * (MAX_LINE_BUFLEN + 1));
-        IMSCR_CRLF();
+        InsertNewLine();
+        IMSCR_CURS_Y ++;
+        IMSCR_MEM_Y ++;
     }
 
     fclose(file);   // Close the file
