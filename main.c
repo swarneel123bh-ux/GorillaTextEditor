@@ -15,35 +15,17 @@ int main(int argc, char** argv) {
     mvwprintw(imScrBg->window, 0, (int)((imScrBg->wCursCols -  strlen(filename))/2), filename);
     wrefresh(imScrBg->window);  // Need to refresh this only once
 
+    LoadFile();
+    REFRESH();
+
     currentMode = NORMALMODE;   // Set current mode to NORMALMODE
-    Message("--NORMALMODE--"); 
 
     // Main loop
-    int c = 0;
     while (running){
         switch (currentMode) {
-            case NORMALMODE: { ProcessKeyhit(); break; }
-            case INPUTMODE: { ProcessKeyhit(); break; }
-
-            case COMMANDMODE: {
-                Message("--COMMANDMODE--> ");
-                char command[100];
-                echo();
-                mvwscanw(cmWindow->window, 1, 17, "%s", command);
-                noecho();
-
-                if (!strcmp(command, "q")) {
-                    if (dirty) { QUICKMESSAGE("--Unwritten changes exist, use :w first--"); }
-                    else { ExitProgram(ERR_NOERROR); }
-                }
-                if (!strcmp(command, "q!")) ExitProgram(ERR_NOERROR); 
-                if (!strcmp(command, "w")) { WriteToFile(); }
-                if (!strcmp(command, "wq")) { WriteToFile(); ExitProgram(ERR_NOERROR); }
-                else { QUICKMESSAGE("--INVALID COMMAND--"); }
-
-                break;
-            }
-
+            case NORMALMODE: { Message("--NORMALMODE--"); ProcessKeyhit(); break; }
+            case INPUTMODE: { Message("--INPUTMODE--"); ProcessKeyhit(); break; }
+            case COMMANDMODE: { Message("--COMMANDMODE--> "); ProcessCommand(); break; }
             default: { ExitProgram(ERR_UNDEFINED_MODE); break; }
         }
     }
@@ -80,6 +62,44 @@ void InitSubWindows() {
     imScr->nLines = 1;
 }
 
+// If opened file exists, then load all the data into mem and scr
+void LoadFile() {
+    if (!strcmp(imScr->win->title, "Untitled")) return;
+    
+    // Try to open the file
+    FILE* file = fopen(imScr->win->title, "r");
+    if (!file) { 
+        Message("File does't exist, cannot read");
+        return; 
+    }  // File doesnt exist, no need to read
+
+    char buffer[MAX_LINE_BUFLEN + 1];
+    memset(buffer, 0, sizeof(char) * (MAX_LINE_BUFLEN + 1));
+    while (fgets(buffer, MAX_LINE_BUFLEN, file)) {
+        // Remove the newline character if present
+        buffer[strcspn(buffer, "\n")] = '\0';
+        // Since screen starts empty, first add the line then do
+        // CRLF routine
+        // Copy into the buffer 
+        strcpy(IMSCR_CURLINE_BUF, buffer);
+        // Fix the len
+        IMSCR_CURLINE->len += strlen(buffer);   
+        // Print the line out
+        mvwprintw(imScr->win->window, IMSCR_CURS_POS, "%s", IMSCR_CURLINE_BUF); 
+        memset(buffer, 0, sizeof(char) * (MAX_LINE_BUFLEN + 1));
+        IMSCR_CRLF();
+    }
+
+    fclose(file);   // Close the file
+
+    // Reset the cursor position to 0, 0
+    IMSCR_CURS_Y = 0;
+    IMSCR_MEM_Y = 0;
+    IMSCR_CURS_X = 0;
+    IMSCR_MEM_X = 0;
+    IMSCR_CURS_MOVE();
+}
+
 // Returns a window wrapper
 subWin* NewWindow(char* title, int begY, int begX, int endY, int endX) {
     subWin* win = (subWin*) malloc(sizeof(subWin));
@@ -109,6 +129,7 @@ line* NewLine() {
 
 // Print msg out to command window
 void Message(const char* msg) {
+    wmove(cmWindow->window, 1, 1);
     wclrtoeol(cmWindow->window);
     mvwprintw(cmWindow->window, 1, 1, msg);
     REFRESH();
@@ -120,8 +141,7 @@ void ProcessKeyhit() {
 
     switch (ch) {
         case ESC: { // Needs two hits to change immediately, else waits 1 second idk why
-            currentMode = NORMALMODE;
-            Message("--NORMALMODE--");
+            if (currentMode != NORMALMODE) currentMode = NORMALMODE;
             break;
         }
 
@@ -131,7 +151,6 @@ void ProcessKeyhit() {
                 IMSCR_CURS_X = 0;
                 IMSCR_MEM_X = 0;
                 IMSCR_CURS_MOVE();
-                Message("--INPUTMODE--");
             } 
             else { InsertInLine(ch); dirty = true; }
             break;
@@ -139,7 +158,6 @@ void ProcessKeyhit() {
         case i: {
             if (currentMode == NORMALMODE) {
                 currentMode = INPUTMODE;
-                Message("--INPUTMODE--");
             } 
             else { InsertInLine(ch); dirty = true; }
             break;
@@ -151,7 +169,6 @@ void ProcessKeyhit() {
                 IMSCR_CURS_X = IMSCR_CURLINE->len;
                 IMSCR_MEM_X = IMSCR_CURS_X;
                 IMSCR_CURS_MOVE();
-                Message("--INPUTMODE--");
             }
             else { InsertInLine(ch); dirty = true; }
             break;
@@ -162,7 +179,6 @@ void ProcessKeyhit() {
                 IMSCR_CURS_X = min(IMSCR_CURS_X + 1, IMSCR_CURLINE->len);
                 IMSCR_MEM_X = IMSCR_CURS_X;
                 IMSCR_CURS_MOVE();
-                Message("--INPUTMODE--");
             }
             else { InsertInLine(ch); dirty = true; }
             break;
@@ -176,7 +192,6 @@ void ProcessKeyhit() {
                 IMSCR_CURS_X = 0;
                 IMSCR_MEM_X = 0;
                 IMSCR_CURS_MOVE();
-                Message("--INPUTMODE--");
                 dirty = true;
                 REFRESH();
             } 
@@ -195,7 +210,6 @@ void ProcessKeyhit() {
                     IMSCR_MEM_X = 0;
                     IMSCR_CURS_MOVE();
 
-                    Message("--INPUTMODE--");
                     dirty = true;
                 }
                 REFRESH();
@@ -205,7 +219,7 @@ void ProcessKeyhit() {
         }
 
         case COLON: {
-            if (currentMode == NORMALMODE) { currentMode = COMMANDMODE; }
+            if (currentMode == NORMALMODE) { currentMode = COMMANDMODE; Message("--COMMANDMODE--> "); }
             else if (currentMode == INPUTMODE) { InsertInLine(':'); dirty = true; }
             break;
         }
@@ -285,29 +299,29 @@ void ProcessKeyhit() {
 
         // Navigation keys
         case k: {   // UP
-            if (currentMode != INPUTMODE) { NAV_UP(); }
+            if (currentMode != INPUTMODE) { IMSCR_CURS_NAV_UP(); }
             else { InsertInLine('k'); }
             break; 
         }
-        case KEY_UP: { NAV_UP(); break; }
+        case KEY_UP: { IMSCR_CURS_NAV_UP(); break; }
         case j: { // DOWN
-            if (currentMode != INPUTMODE) { NAV_DOWN(); }
+            if (currentMode != INPUTMODE) { IMSCR_CURS_NAV_DOWN(); }
             else { InsertInLine('j'); }
             break;
         }
-        case KEY_DOWN: { NAV_DOWN(); break; }
+        case KEY_DOWN: { IMSCR_CURS_NAV_DOWN(); break; }
         case h: {   // LEFT
-            if (currentMode != INPUTMODE) { NAV_LEFT(); }
+            if (currentMode != INPUTMODE) { IMSCR_CURS_NAV_LEFT(); }
             else { InsertInLine('h'); }
             break;
         }
-        case KEY_LEFT: { NAV_LEFT(); break; }
+        case KEY_LEFT: { IMSCR_CURS_NAV_LEFT(); break; }
         case l: {   // RIGHT
-            if (currentMode != INPUTMODE) { NAV_RIGHT(); }
+            if (currentMode != INPUTMODE) { IMSCR_CURS_NAV_RIGHT(); }
             else { InsertInLine('l'); }
             break;
         }
-        case KEY_RIGHT: { NAV_RIGHT(); break; } 
+        case KEY_RIGHT: { IMSCR_CURS_NAV_RIGHT(); break; } 
 
         default: { 
             if (currentMode == INPUTMODE) {
@@ -316,6 +330,28 @@ void ProcessKeyhit() {
             } else {} 
             break;
         }
+    }
+}
+
+// Get a command and do the related task
+void ProcessCommand() {
+    char command[100];
+    echo();
+    mvwscanw(cmWindow->window, 1, 17, "%s", command);
+    noecho();
+
+    if (!strcmp(command, "q")) {
+        if (dirty) {
+            QUICKMESSAGE("--Unwritten changes exist, use :w first--"); }
+        else { ExitProgram(ERR_NOERROR); }
+    }
+    if (!strcmp(command, "q!")) ExitProgram(ERR_NOERROR); 
+    if (!strcmp(command, "w")) { WriteToFile(); }
+    if (!strcmp(command, "wq")) { WriteToFile(); ExitProgram(ERR_NOERROR); }
+    else { 
+        QUICKMESSAGE("--COMMANDMODE--> Invalid command")
+        currentMode = NORMALMODE;
+        return;
     }
 }
 

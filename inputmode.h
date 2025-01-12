@@ -16,34 +16,6 @@
 #define IMSCR_CURCHAR IMSCR_CURLINE_BUF[IMSCR_MEM_X] // Gives the character the cursor is currently on
 
 // Macros for keypresses
-/*
-Adds a new line underneath current line, copies the content of the
-current line to the right of current cursor position,
-pastes the copied content into the new line
-DOES NOT account for scrolling, needs to be checked separately
-*/
-#define IMSCR_CRLF() {\
-    InsertNewLine();\
-    char copyBuf[1000]; memset(copyBuf, 0, sizeof(char) * 1000);\
-    memcpy(copyBuf, (IMSCR_CURLINE_BUF + IMSCR_MEM_X), sizeof(char) * strlen(IMSCR_CURLINE_BUF + IMSCR_MEM_X));\
-    memset((IMSCR_CURLINE_BUF + IMSCR_MEM_X), 0, sizeof(char) * strlen(IMSCR_CURLINE_BUF + IMSCR_MEM_X));\
-    wclrtoeol(imScr->win->window);\
-    IMSCR_CURLINE->len -= strlen(copyBuf);\
-    IMSCR_CURS_Y ++;\
-    IMSCR_MEM_Y ++;\
-    IMSCR_CURS_X = 0;\
-    IMSCR_MEM_X = 0;\
-    IMSCR_CURS_MOVE();\
-    char c_; int i = 0;\
-    while ((c_ = copyBuf[i++])) {\
-        InsertInLine(c_);\
-    }\
-    IMSCR_CURS_X = 0;\
-    IMSCR_MEM_X = 0;\
-    IMSCR_CURS_MOVE();\
-    REFRESH();\
-}
-
 typedef struct inputModeScreen {
     int nLines;         // Number of modifiable lines in memory
     int nPossibleLines; // Allocated size of lines**
@@ -53,6 +25,13 @@ typedef struct inputModeScreen {
     subWin* win;        // Window wrapper for input mode screen
 } imscr;
 imscr* imScr;   // Contains all information regaring the inputmode screen
+
+// Functions for keypress effects
+void IMSCR_CURS_NAV_UP();       // Normal UP arrow key effect
+void IMSCR_CURS_NAV_DOWN();     // Normal DOWN arrow key effect
+void IMSCR_CURS_NAV_LEFT();     // Normal LEFT arrow key effect
+void IMSCR_CURS_NAV_RIGHT();    // Normal RIGHT arrow key effect
+void IMSCR_CRLF();              // Normal ENTER key effect
 
 void InsertNewLine();           // Insert a new line underneath the current line 
 void InsertNewLineAbove();      // Insert a new line above the current line 

@@ -10,6 +10,7 @@
 
 // Constants
 #define MAX_CLIPBOARD_BUFLEN 1000
+#define MAX_LINE_BUFLEN imScr->win->wCursCols
 #define NORMALMODE -1
 #define COMMANDMODE 0
 #define INPUTMODE 1
@@ -54,6 +55,10 @@ wrefresh(imScr->win->window);\
     usleep(usec); \
 } while (0);
 
+/*
+Show a message for a brief period of time and stop
+Execution during that period
+*/
 #define QUICKMESSAGE(msg) {\
     Message(msg);\
     SLEEP(0.5);\
@@ -64,93 +69,13 @@ wrefresh(imScr->win->window);\
     Message("--NORMALMODE--");\
 }
 
-// Normal UP arrow key effect
-#define NAV_UP() {\
-    if (IMSCR_MEM_Y == 0) { IMSCR_MEM_X = 0; IMSCR_CURS_X = 0; }\
-    else if (IMSCR_CURS_Y == 0) {\
-        if (IMSCR_MEM_Y > 0) {\
-            wscrl(imScr->win->window, -1);\
-            mvwprintw(imScr->win->window, IMSCR_CURS_Y, 0, "%s",\
-            IMSCR_CURLINE_BUF);\
-            IMSCR_MEM_Y --;\
-            IMSCR_CURS_X = min(IMSCR_CURLINE->len, IMSCR_CURS_X);\
-            IMSCR_MEM_X = IMSCR_CURS_X;\
-        } else { IMSCR_MEM_X = 0; IMSCR_CURS_X = 0; }\
-    }\
-    else {\
-        IMSCR_CURS_Y --;\
-        IMSCR_MEM_Y --;\
-        IMSCR_CURS_X = min(IMSCR_CURLINE->len, IMSCR_CURS_X);\
-        IMSCR_MEM_X = IMSCR_CURS_X;\
-    }\
-    IMSCR_CURS_MOVE();\
-}
-// Normal DOWN arrow key effect
-// If cursor y coord is at end of the screen, scroll
-// If mem y coord is at end of linearr, do nothing
-#define NAV_DOWN() {\
-    if (IMSCR_MEM_Y == imScr->nLines - 1) {\
-        if (IMSCR_MEM_X == IMSCR_CURLINE->len) {}\
-        else { IMSCR_CURS_X = IMSCR_CURLINE->len; IMSCR_MEM_X = IMSCR_CURS_X; }\
-    } else if (IMSCR_CURS_Y == imScr->win->wCursLines - 1) {\
-        wscrl(imScr->win->window, 1);\
-        IMSCR_MEM_Y ++;\
-        mvwprintw(imScr->win->window, IMSCR_CURS_Y, 0, "%s",\
-        IMSCR_CURLINE_BUF);\
-        IMSCR_CURS_X = min(IMSCR_CURS_X, IMSCR_CURLINE->len);\
-        IMSCR_MEM_X = IMSCR_CURS_X;\
-    } else {\
-        IMSCR_MEM_Y ++;\
-        IMSCR_CURS_Y ++;\
-        IMSCR_CURS_X = min(IMSCR_CURS_X, IMSCR_CURLINE->len);\
-        IMSCR_MEM_X = IMSCR_CURS_X;\
-    }\
-    IMSCR_CURS_MOVE();\
-}
-// Normal LEFT arrow key effect
-#define NAV_LEFT() {\
-    if (IMSCR_CURS_X > 0) { IMSCR_CURS_X --; IMSCR_MEM_X = IMSCR_CURS_X; }\
-    else if (IMSCR_CURS_Y > 0) {\
-        IMSCR_CURS_Y --;\
-        IMSCR_MEM_Y --;\
-        IMSCR_CURS_X = IMSCR_CURLINE->len;\
-        IMSCR_MEM_X = IMSCR_CURS_X;\
-    } else if (IMSCR_MEM_Y > 0) {\
-        wscrl(imScr->win->window, -1);\
-        IMSCR_MEM_Y --;\
-        mvwprintw(imScr->win->window, IMSCR_CURS_Y, 0, "%s",\
-        IMSCR_CURLINE_BUF);\
-        IMSCR_CURS_X = IMSCR_CURLINE->len;\
-        IMSCR_MEM_X = IMSCR_CURS_X;\
-    } else { }\
-    IMSCR_CURS_MOVE();\
-}
-#define NAV_RIGHT() {\
-    if (IMSCR_CURS_X < IMSCR_CURLINE->len) { IMSCR_CURS_X ++; IMSCR_MEM_X = IMSCR_CURS_X; }\
-    else if (IMSCR_CURS_Y < imScr->win->wCursLines) {\
-        IMSCR_CURS_Y ++;\
-        IMSCR_MEM_Y ++;\
-        IMSCR_CURS_X = 0;\
-        IMSCR_MEM_X = IMSCR_CURS_X;\
-    } else if (IMSCR_MEM_Y < imScr->nLines) {\
-        wscrl(imScr->win->window, 1);\
-        IMSCR_MEM_Y ++;\
-        mvwprintw(imScr->win->window, IMSCR_CURS_Y, 0, "%s",\
-        IMSCR_CURLINE_BUF);\
-        IMSCR_CURS_X = 0;\
-        IMSCR_MEM_X = 0;\
-    } else {}\
-    IMSCR_CURS_MOVE();\
-    break;\
-}
-
-char filename[FILENAME_MAX];     // Name of currently opened file
-bool running;       // Exit flag
-bool dirty;         // Write-require check
-int currentMode;    // State flag
-
-int mainWindowMaxX; // Max possible X coord
-int mainWindowMaxY; // Max possible Y coord
+// Some window constants
+char filename[FILENAME_MAX];    // Name of currently opened file
+bool running;                   // Exit flag
+bool dirty;                     // Write-require check
+int currentMode;                // State flag
+int mainWindowMaxX;             // Max possible X coord
+int mainWindowMaxY;             // Max possible Y coord
 
 // subWindow
 typedef struct subWindow {
@@ -165,9 +90,7 @@ typedef struct subWindow {
     WINDOW* window;
     char* title;
 } subWin;
-subWin* NewWindow(\
-char* filename, 
-int begY, int begX, int endY, int endX);
+subWin* NewWindow(char* filename, int begY, int begX, int endY, int endX);
 
 // Single line structure for text
 typedef struct inputModeLine {
@@ -187,10 +110,12 @@ typedef struct Clipboard{
 } clipboard;
 clipboard* ClipBoard;
 
-
+// General Functions
 void InitMainWindow();  // Get all data for the stdscr
 void InitSubWindows();  // Get and setup all data for the input and command windows
+void LoadFile();        // If opened file exists then load all the data into the memory and screen
 void ProcessKeyhit();   // Get a keyhit and do corresponding task depending on mode
+void ProcessCommand();  // Get a command and do related task
 void ExitProgram(int errcode);  // Deallocate all memory and exit program safely
 void PrintError(int errcode);   // If there is an error of known type print that out 
 void Message(const char* msg);  // Print msg to command window
