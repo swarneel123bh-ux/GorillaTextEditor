@@ -114,7 +114,7 @@ clipboard* ClipBoard;
 void InitMainWindow();  // Get all data for the stdscr
 void InitSubWindows();  // Get and setup all data for the input and command windows
 void LoadFile();        // If opened file exists then load all the data into the memory and screen
-void ProcessKeyhit();   // Get a keyhit and do corresponding task depending on mode
+int ProcessKeyhit();   // Get a keyhit and do corresponding task depending on mode
 void ProcessCommand();  // Get a command and do related task
 void ExitProgram(int errcode);  // Deallocate all memory and exit program safely
 void PrintError(int errcode);   // If there is an error of known type print that out 

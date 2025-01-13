@@ -7,6 +7,10 @@ int main(int argc, char** argv) {
     if (argc > 1) { strcpy(filename, argv[1]); }
     else strcpy(filename, "Untitled");
 
+    // Setting ESCDELAY to 50 milliseconds to avoid delay when shifting
+    // modes
+    ESCDELAY = 50;
+
     InitMainWindow();   // Main window setup
     InitSubWindows();   // inputmode window and command window setup
     refresh();          // Refresh stdscr to make windows appear
@@ -19,15 +23,14 @@ int main(int argc, char** argv) {
     REFRESH();
 
     currentMode = NORMALMODE;   // Set current mode to NORMALMODE
-
     // Main loop
     while (running){
         switch (currentMode) {
-            case NORMALMODE: { Message("--NORMALMODE--"); ProcessKeyhit(); break; }
-            case INPUTMODE: { Message("--INPUTMODE--"); ProcessKeyhit(); break; }
-            case COMMANDMODE: { Message("--COMMANDMODE--> "); ProcessCommand(); break; }
-            default: { ExitProgram(ERR_UNDEFINED_MODE); break; }
+            case NORMALMODE: Message("--NORMALMODE--"); break;
+            case INPUTMODE: Message("--INPUTMODE--"); break;
+            default: ExitProgram(ERR_UNDEFINED_MODE); break;
         }
+        currentMode = ProcessKeyhit();
     }
     endwin();   // Just in case we exit improperly
     return 0;
@@ -138,7 +141,7 @@ void Message(const char* msg) {
 }
 
 // Does whatever a keypress would do depending upon the state 
-void ProcessKeyhit() {
+int ProcessKeyhit() {   // Returns currentMode after alteration
     int ch = wgetch(imScr->win->window);
 
     switch (ch) {
@@ -221,8 +224,15 @@ void ProcessKeyhit() {
         }
 
         case COLON: {
-            if (currentMode == NORMALMODE) { currentMode = COMMANDMODE; Message("--COMMANDMODE--> "); }
-            else if (currentMode == INPUTMODE) { InsertInLine(':'); dirty = true; }
+            if (currentMode == NORMALMODE) {
+                currentMode = COMMANDMODE;
+                Message("--COMMANDMODE--> ");
+                ProcessCommand();
+            }
+            else if (currentMode == INPUTMODE) {
+                InsertInLine(':');
+                dirty = true;
+            }
             break;
         }
 
@@ -333,6 +343,8 @@ void ProcessKeyhit() {
             break;
         }
     }
+
+    return currentMode;
 }
 
 // Get a command and do the related task
