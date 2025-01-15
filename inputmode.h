@@ -36,8 +36,5 @@ void IMSCR_CRLF();              // Normal ENTER key effect
 void InsertNewLine();           // Insert a new line underneath the current line 
 void InsertNewLineAbove();      // Insert a new line above the current line 
 void InsertInLine(int ch);      // Insert ch in current cursor position both in memory and screen
-void Cut();                     // Cut function
-void Copy();                    // Copy function 
-void Paste(char* buf);                   // Paste Function
 
 #endif // INPUTMODE_H
