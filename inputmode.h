@@ -1,7 +1,8 @@
 #ifndef INPUTMODE_H
 #define INPUTMODE_H
 
-#include "general.h"
+#include "mem.h"
+#include "commandmode.h"
 
 // Macros for shortcuts
 // Cursor position on the imScr->win->window

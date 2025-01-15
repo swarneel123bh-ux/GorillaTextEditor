@@ -1,4 +1,5 @@
 #include "visualmode.h"
+#include "mem.h"
 #include "inputmode.h"
 
 // NOTE :: NEED TO IMPLEMENT VISUALMODE BEFORE THESE CAN BE USED

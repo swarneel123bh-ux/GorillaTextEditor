@@ -1,4 +1,5 @@
 #include "general.h"
+#include "mem.h"
 #include "commandmode.h"
 #include "inputmode.h"
 
