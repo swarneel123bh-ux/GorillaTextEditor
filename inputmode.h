@@ -1,6 +1,10 @@
 #ifndef INPUTMODE_H
 #define INPUTMODE_H
 
+/*
+Deals with inputting raw text to the file
+*/
+
 #include "mem.h"
 #include "commandmode.h"
 

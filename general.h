@@ -51,6 +51,7 @@ bool dirty;                     // Write-require check
 int currentMode;                // State flag
 int mainWindowMaxX;             // Max possible X coord
 int mainWindowMaxY;             // Max possible Y coord
+
 // General Functions
 int ProcessKeyhit();   // Get a keyhit and do corresponding task depending on mode
 

@@ -2,6 +2,7 @@
 #include "mem.h"
 #include "commandmode.h"
 #include "inputmode.h"
+#include "visualmode.h"
 
 int main(int argc, char** argv) {
     // General setup
@@ -30,6 +31,7 @@ int main(int argc, char** argv) {
         switch (currentMode) {
             case NORMALMODE: Message("--NORMALMODE--"); break;
             case INPUTMODE: Message("--INPUTMODE--"); break;
+            case VISUALMODE: Message("--VISUALMODE--"); break;
             default: ExitProgram(ERR_UNDEFINED_MODE); break;
         }
         currentMode = ProcessKeyhit();
@@ -49,6 +51,7 @@ int ProcessKeyhit() {   // Returns currentMode after alteration
             break;
         }
 
+        // Start writing at the beginning of current line
         case I: {
             if (currentMode == NORMALMODE) {
                 currentMode = INPUTMODE;
@@ -59,6 +62,7 @@ int ProcessKeyhit() {   // Returns currentMode after alteration
             else { InsertInLine(ch); dirty = true; }
             break;
         }
+        // Start writing at current cursor position
         case i: {
             if (currentMode == NORMALMODE) {
                 currentMode = INPUTMODE;
@@ -66,7 +70,7 @@ int ProcessKeyhit() {   // Returns currentMode after alteration
             else { InsertInLine(ch); dirty = true; }
             break;
         }
-
+        // Start writing at the end of current line
         case A: {
             if (currentMode == NORMALMODE) {
                 currentMode = INPUTMODE;
@@ -77,6 +81,7 @@ int ProcessKeyhit() {   // Returns currentMode after alteration
             else { InsertInLine(ch); dirty = true; }
             break;
         }
+        // Start writing at the next x position on current line
         case a: { 
             if (currentMode == NORMALMODE) {
                 currentMode = INPUTMODE;
@@ -87,8 +92,7 @@ int ProcessKeyhit() {   // Returns currentMode after alteration
             else { InsertInLine(ch); dirty = true; }
             break;
         }
-
-        // NEED TO INCLUDE SCROLLING HERE
+        // Insert line above current line and start writing from beginning
         case O: {
             if (currentMode == NORMALMODE) {
                 currentMode = INPUTMODE;
@@ -102,6 +106,7 @@ int ProcessKeyhit() {   // Returns currentMode after alteration
             else { InsertInLine(ch); dirty = true; }
             break;
         }
+        // Insert line under current line and start writing from beginning
         case o: { 
             if (currentMode == NORMALMODE) {
                 currentMode = INPUTMODE;
@@ -119,6 +124,35 @@ int ProcessKeyhit() {   // Returns currentMode after alteration
                 REFRESH();
             } 
             else { InsertInLine(ch); dirty = true; }
+            break;
+        }
+
+        // VISUALMODE
+        case v: {
+            currentMode = VISUALMODE;
+
+            // Can have issues when selection causes scrolling
+            // NEED TO IMPLEMENT CORRECTLY RESTORING POS
+            int cur_x_pos = IMSCR_CURS_X;
+            int cur_y_pos = IMSCR_CURS_Y;
+            int end_x_pos = cur_x_pos;
+            int end_y_pos = cur_y_pos;
+            
+            Select(BY_CHAR, &cur_y_pos, &cur_x_pos, &end_y_pos, &end_x_pos);
+
+            // Do whatever was required here (cut/copy)
+
+            // Dehighlight everything again
+            IMSCR_CURS_X = cur_x_pos;
+            IMSCR_CURS_Y = cur_y_pos;
+
+            for (; IMSCR_CURS_Y <= end_y_pos; ) {
+                chgat(1, A_NORMAL, NORMAL_TEXT, NULL);
+                IMSCR_CURS_NAV_RIGHT();
+            }
+
+            IMSCR_CURS_X = cur_x_pos;
+            IMSCR_CURS_Y = cur_y_pos;
             break;
         }
 

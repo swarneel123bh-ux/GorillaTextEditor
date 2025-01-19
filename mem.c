@@ -1,13 +1,19 @@
 #include "general.h"
 #include "inputmode.h"
 #include "mem.h"
+#include "visualmode.h"
 
 // Initialize ncurses, get stdscr data and make stdscr wrapper
 void InitMainWindow() {
+    // Init ncurses window screens
     initscr();
-    noecho();
-    cbreak();
-    getmaxyx(stdscr, mainWindowMaxY, mainWindowMaxX);
+    noecho();   // Disable echoing
+    cbreak();   // Enable combination inputs
+    start_color();  // Enable colors
+    // Define color pairs
+    init_pair(HIGHLIGHTED_TEXT, COLOR_BLACK, COLOR_YELLOW); // Highlighted text
+    init_pair(NORMAL_TEXT, COLOR_WHITE, COLOR_BLACK);  // Normal text
+    getmaxyx(stdscr, mainWindowMaxY, mainWindowMaxX);   // Get max-coords
     // Reduce both max X and Y because of some weird behaviour that i cannot understand
     mainWindowMaxY --;
     mainWindowMaxX --;

@@ -1,7 +1,23 @@
 #ifndef MEM_H
 #define MEM_H
 
+/*
+Deals with everything that does not directly show up on
+the screen as a response to an input
+*/
+
 #include <ncurses.h>
+
+// Macros for general tasks
+// Given an index, shift left
+#define SHIFTLEFT(array, index, size) do { \
+memmove(&(array)[index], &(array)[(index) + 1], ((size) - (index) - 1) * sizeof((array)[0])); \
+} while (0) 
+
+// Given an index, shift right without fill
+#define SHIFTRIGHT(array, index, size) do { \
+if ((size) > (index) + 1) { memmove(&(array)[(index) + 1], &(array)[index], ((size) - (index) - 1) * sizeof((array)[0])); } \
+} while (0) 
 
 // subWindow
 typedef struct subWindow {
@@ -16,6 +32,7 @@ typedef struct subWindow {
     WINDOW* window;
     char* title;
 } subWin;
+// Returns a wrapper for an Ncurses window
 subWin* NewWindow(char* filename, int begY, int begX, int endY, int endX);
 
 // Single line structure for text
@@ -30,23 +47,14 @@ subWin* mainWindow; // stdscr wrapper as main window
 subWin* cmWindow;   // command window wrapper
 subWin* imScrBg;    // Bagcground to the imScr window, so that the border doesnt move
 
+// ClipBoard struct for copy/paste stuff
 typedef struct Clipboard{
     int contentLen;
     char* buf;
 } clipboard;
-clipboard* ClipBoard;
+clipboard* ClipBoard;   // Program clipboard
 
-// Macros for general tasks
-// Given an index, shift left
-#define SHIFTLEFT(array, index, size) do { \
-memmove(&(array)[index], &(array)[(index) + 1], ((size) - (index) - 1) * sizeof((array)[0])); \
-} while (0) 
-
-// Given an index, shift right without fill
-#define SHIFTRIGHT(array, index, size) do { \
-if ((size) > (index) + 1) { memmove(&(array)[(index) + 1], &(array)[index], ((size) - (index) - 1) * sizeof((array)[0])); } \
-} while (0) 
-
+// Function Definitions
 void InitMainWindow();  // Get all data for the stdscr
 void InitSubWindows();  // Get and setup all data for the input and command windows
 void LoadFile();        // If opened file exists then load all the data into the memory and screen
