@@ -26,6 +26,8 @@ int main(int argc, char** argv) {
     REFRESH();
 
     currentMode = NORMALMODE;   // Set current mode to NORMALMODE
+    // Set NORMAL_TEXT color attribute as the normal writing attr
+    wattron(imScr->win->window, COLOR_PAIR(NORMAL_TEXT));    
     // Main loop
     while (running){
         switch (currentMode) {

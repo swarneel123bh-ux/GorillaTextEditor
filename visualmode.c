@@ -22,7 +22,7 @@ void Select(int mode, int* startY, int* startX, int* endY, int* endX) {
         case BY_LINE:
         case BY_CHAR: {
             while (visualmode_running) {
-                int ch = getch();   // Get keyhit
+                int ch = wgetch(imScr->win->window);   // Get keyhit
                 switch (ch) {
                     case ESC: {
                         currentMode = NORMALMODE;

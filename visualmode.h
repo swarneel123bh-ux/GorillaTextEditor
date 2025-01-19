@@ -18,8 +18,8 @@ copy/cut/pasting stuff
 
 // Macros for shortcuts
 #define FLIP_HIGHLIGHT() {\
-int curColor = PAIR_NUMBER(inch() & A_COLOR);\
-chgat(1, A_NORMAL,\
+int curColor = PAIR_NUMBER(winch(imScr->win->window) & A_COLOR);\
+wchgat(imScr->win->window, 1, A_NORMAL,\
 (curColor == NORMAL_TEXT)? HIGHLIGHTED_TEXT : NORMAL_TEXT,\
 NULL);\
 }
