@@ -69,6 +69,7 @@ void IMSCR_CURS_NAV_LEFT() {
 
 // Normal RIGHT arrow key effect
 void IMSCR_CURS_NAV_RIGHT() {
+    // RIGHT ARROW KEY FAULTY, SEGFAULT WHEN AT END OF FILE
     if (IMSCR_CURS_X < IMSCR_CURLINE->len) { IMSCR_CURS_X ++; IMSCR_MEM_X = IMSCR_CURS_X; }
     else if (IMSCR_CURS_Y < imScr->win->wCursLines) {
         IMSCR_CURS_Y ++;
