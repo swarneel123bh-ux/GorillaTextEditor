@@ -10,9 +10,6 @@ void InitMainWindow() {
     noecho();   // Disable echoing
     cbreak();   // Enable combination inputs
     start_color();  // Enable colors
-    // Define color pairs
-    init_pair(HIGHLIGHTED_TEXT, COLOR_BLACK, COLOR_YELLOW); // Highlighted text
-    init_pair(NORMAL_TEXT, COLOR_WHITE, COLOR_BLACK);  // Normal text
     getmaxyx(stdscr, mainWindowMaxY, mainWindowMaxX);   // Get max-coords
     // Reduce both max X and Y because of some weird behaviour that i cannot understand
     mainWindowMaxY --;
@@ -20,6 +17,9 @@ void InitMainWindow() {
     mainWindow = NewWindow(NULL, 0, 0, mainWindowMaxY, mainWindowMaxX);
     ClipBoard = (clipboard*) malloc (sizeof(clipboard));
     ClipBoard->buf = (char*) malloc (sizeof(char) * MAX_CLIPBOARD_BUFLEN);
+    // Define color pairs
+    init_pair(HIGHLIGHTED_TEXT, COLOR_BLACK, COLOR_YELLOW); // Highlighted text
+    init_pair(NORMAL_TEXT, COLOR_WHITE, COLOR_BLACK);  // Normal text
     keypad(stdscr, true); // Set keypad to true to allow cursor movement when in normalmode
 }
 
@@ -50,6 +50,7 @@ void LoadFile() {
 
     char buffer[MAX_LINE_BUFLEN + 1];
     memset(buffer, 0, sizeof(char) * (MAX_LINE_BUFLEN + 1));
+    wattron(imScr->win->window, COLOR_PAIR(NORMAL_TEXT));
     while (fgets(buffer, MAX_LINE_BUFLEN, file)) {
         // Remove the newline character if present
         buffer[strcspn(buffer, "\n")] = '\0';
@@ -75,6 +76,8 @@ void LoadFile() {
     IMSCR_CURS_X = 0;
     IMSCR_MEM_X = 0;
     IMSCR_CURS_MOVE();
+
+    wattroff(imScr->win->window, COLOR_PAIR(NORMAL_TEXT));
 }
 
 // Returns a window wrapper

@@ -8,20 +8,23 @@ copy/cut/pasting stuff
 
 #include "general.h"
 
-// highlighting colors
-#define NORMAL_TEXT 1
-#define HIGHLIGHTED_TEXT 2
-
 // Selection Modes
 #define BY_CHAR 3
 #define BY_LINE 4
 
-// Macros for shortcuts
-#define FLIP_HIGHLIGHT() {\
-int curColor = PAIR_NUMBER(winch(imScr->win->window) & A_COLOR);\
-wchgat(imScr->win->window, 1, A_NORMAL,\
-(curColor == NORMAL_TEXT)? HIGHLIGHTED_TEXT : NORMAL_TEXT,\
-NULL);\
+// SOMETHING WRONG HERE
+#define CLEAR_HIGHLIGHT(starty, startx, endy, endx) {\
+    wchgat(imScr->win->window, 1, A_NORMAL, NORMAL_TEXT, NULL);\
+}
+
+// SOMETHING WRONG HERE
+/*
+Cannot seem to run through lines while highlighting 
+Seems to get stuck in an infinite loop inside wchgat when using 
+loops here
+*/
+#define HIGHLIGHT(starty, startx, endy, endx) {\
+    wchgat(imScr->win->window, 1, A_NORMAL, HIGHLIGHTED_TEXT, NULL);\
 }
 
 // Flags

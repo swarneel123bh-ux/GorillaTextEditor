@@ -18,16 +18,30 @@ if mode is BYCHAR then we do the same thing by character by character
 See vim-motions for reference
 */
 void Select(int mode, int* startY, int* startX, int* endY, int* endX) {
+    curs_set(0);
+
     switch (mode) {
         case BY_LINE:
         case BY_CHAR: {
             while (visualmode_running) {
                 int ch = wgetch(imScr->win->window);   // Get keyhit
+
+                // for (int i = min(*startY, *endY); i <= max(*startY, *endY); i++) {
+                //     for (int j = min(*startX, *endX); j <= max(*startX, *endX); j ++) {
+                //         wmove(imScr->win->window, i, j);
+                //         wchgat(imScr->win->window, 1, A_NORMAL, HIGHLIGHTED_TEXT, NULL);
+                //     }
+                // }
+                
                 switch (ch) {
                     case ESC: {
+                        Message("ESCAPE");
                         currentMode = NORMALMODE;
+                        visualmode_running = false;
                         *endY = IMSCR_CURS_X;
                         *endX = IMSCR_CURS_Y;
+                        CLEAR_HIGHLIGHT(*startY, *startX, *endY, *endX);
+                        curs_set(1);
                         return;
                         break;
                     }
@@ -35,29 +49,37 @@ void Select(int mode, int* startY, int* startX, int* endY, int* endX) {
                     // Navigation keys
                     case k:
                     case KEY_UP: { 
-                        FLIP_HIGHLIGHT();
                         IMSCR_CURS_NAV_UP();
+                        *endY = IMSCR_CURS_Y;
+                        *endX = IMSCR_CURS_X;
+                        HIGHLIGHT(*startY, *startX, *endY, *endX);
                         break;
                     }
 
                     case j:
                     case KEY_DOWN: {
-                        FLIP_HIGHLIGHT();
                         IMSCR_CURS_NAV_DOWN();
+                        *endY = IMSCR_CURS_Y;
+                        *endX = IMSCR_CURS_X;
+                        HIGHLIGHT(*startY, *startX, *endY, *endX);
                         break;
                     }
 
                     case h: 
                     case KEY_LEFT: {
-                        FLIP_HIGHLIGHT();
                         IMSCR_CURS_NAV_LEFT();
+                        *endY = IMSCR_CURS_Y;
+                        *endX = IMSCR_CURS_X;
+                        HIGHLIGHT(*startY, *startX, *endY, *endX);
                         break;
                     }
 
                     case l:
                     case KEY_RIGHT: {
-                        FLIP_HIGHLIGHT();
                         IMSCR_CURS_NAV_RIGHT();
+                        *endY = IMSCR_CURS_Y;
+                        *endX = IMSCR_CURS_X;
+                        HIGHLIGHT(*startY, *startX, *endY, *endX);
                         break;
                     }
                 
@@ -67,6 +89,7 @@ void Select(int mode, int* startY, int* startX, int* endY, int* endX) {
             break;
         }
     }
+
 }
 
 // note :: need to implement visualmode before these can be used

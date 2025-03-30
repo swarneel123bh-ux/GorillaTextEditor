@@ -16,6 +16,10 @@
 #define INPUTMODE 1
 #define VISUALMODE 2
 
+// highlighting colors
+#define NORMAL_TEXT 1
+#define HIGHLIGHTED_TEXT 2
+
 // Error codes
 #define ERR_UNDEFINED_MODE -1
 #define ERR_NOERROR 0

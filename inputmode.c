@@ -71,12 +71,12 @@ void IMSCR_CURS_NAV_LEFT() {
 void IMSCR_CURS_NAV_RIGHT() {
     // RIGHT ARROW KEY FAULTY, SEGFAULT WHEN AT END OF FILE
     if (IMSCR_CURS_X < IMSCR_CURLINE->len) { IMSCR_CURS_X ++; IMSCR_MEM_X = IMSCR_CURS_X; }
-    else if (IMSCR_CURS_Y < imScr->win->wCursLines) {
+    else if ((IMSCR_CURS_Y < imScr->win->wCursLines-1) && (IMSCR_MEM_Y < imScr->nLines-1)) {
         IMSCR_CURS_Y ++;
         IMSCR_MEM_Y ++;
         IMSCR_CURS_X = 0;
         IMSCR_MEM_X = IMSCR_CURS_X;
-    } else if (IMSCR_MEM_Y < imScr->nLines) {
+    } else if (IMSCR_MEM_Y < imScr->nLines-1) {
         wscrl(imScr->win->window, 1);
         IMSCR_MEM_Y ++;
         mvwprintw(imScr->win->window, IMSCR_CURS_Y, 0, "%s",
@@ -195,7 +195,9 @@ void InsertInLine(int ch) {
     SHIFTRIGHT(IMSCR_CURLINE_BUF, IMSCR_MEM_X, IMSCR_CURLINE->maxLen);
     IMSCR_CURLINE_BUF[IMSCR_MEM_X] = ch;
     IMSCR_CURLINE->len ++;
+    wattron(imScr->win->window, COLOR_PAIR(NORMAL_TEXT));    
     winsch(imScr->win->window, ch);
+    wattroff(imScr->win->window, COLOR_PAIR(NORMAL_TEXT));    
     IMSCR_CURS_X ++; 
     IMSCR_MEM_X ++;
     IMSCR_CURS_MOVE(); 

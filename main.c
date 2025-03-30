@@ -33,7 +33,6 @@ int main(int argc, char** argv) {
         switch (currentMode) {
             case NORMALMODE: Message("--NORMALMODE--"); break;
             case INPUTMODE: Message("--INPUTMODE--"); break;
-            case VISUALMODE: Message("--VISUALMODE--"); break;
             default: ExitProgram(ERR_UNDEFINED_MODE); break;
         }
         currentMode = ProcessKeyhit();
@@ -131,6 +130,10 @@ int ProcessKeyhit() {   // Returns currentMode after alteration
 
         // VISUALMODE
         case v: {
+            if (currentMode == INPUTMODE) { dirty = true; InsertInLine(ch); break; }
+            if (currentMode == VISUALMODE) { break;}
+
+            Message("--VISUALMODE--"); 
             currentMode = VISUALMODE;
 
             // Can have issues when selection causes scrolling
@@ -140,21 +143,10 @@ int ProcessKeyhit() {   // Returns currentMode after alteration
             int end_x_pos = cur_x_pos;
             int end_y_pos = cur_y_pos;
             
+            visualmode_running = true;
             Select(BY_CHAR, &cur_y_pos, &cur_x_pos, &end_y_pos, &end_x_pos);
 
             // Do whatever was required here (cut/copy)
-
-            // Dehighlight everything again
-            IMSCR_CURS_X = cur_x_pos;
-            IMSCR_CURS_Y = cur_y_pos;
-
-            for (; IMSCR_CURS_Y <= end_y_pos; ) {
-                chgat(1, A_NORMAL, NORMAL_TEXT, NULL);
-                IMSCR_CURS_NAV_RIGHT();
-            }
-
-            IMSCR_CURS_X = cur_x_pos;
-            IMSCR_CURS_Y = cur_y_pos;
             break;
         }
 
