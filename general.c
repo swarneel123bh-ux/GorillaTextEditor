@@ -26,10 +26,13 @@ void Sleep(double seconds){
 // Save current line arr status to file in text format
 void WriteToFile(void) {
     if (!strcmp(filename, "Untitled")) {
-        const char* msg = "--COMMANDMODE--> Enter filename :: ";
+        const char* msg = "Enter filename :: ";
         Message(msg);
         echo();
-        mvwscanw(cmscr, 1, strlen(msg), "%s", filename);
+        wmove(cmscr, 1, 0);
+        wclrtoeol(cmscr);
+        Refresh();
+        mvwscanw(cmscr, 1, 0, "%s", filename);
         noecho();
     }
 
@@ -244,7 +247,13 @@ int ProcessKeyhit(void) {
         // VISUALMODE
         case v: {
             // Do whatever was required here (cut/copy)
-            return SIGNAL_SWITCH_TO_VISUALMODE;
+            if (currentMode == NORMALMODE) return SIGNAL_SWITCH_TO_VISUALMODE;
+            else { InsertInLine('v'); dirty = true; return SIGNAL_SWITCH_TO_INPUTMODE; }
+            break;
+        }
+        case V: {
+            if (currentMode == NORMALMODE) return SIGNAL_SWITCH_TO_VISUALMODE;
+            else { InsertInLine('V'); dirty = true; return SIGNAL_SWITCH_TO_INPUTMODE; }
             break;
         }
 
@@ -280,10 +289,10 @@ int ProcessKeyhit(void) {
         // Delete key
         case BS:
         case DEL: { 
-            if (sy > 0) {
+            if (sx > 0) {
                 sx --;
                 mx --;
-                SHIFTLEFT(lines.arr[my]->buf, mx, lines.arr[my]->len);
+                SHIFTLEFT(lines.arr[my]->buf, mx, lines.arr[my]->alcdSiz);
                 lines.arr[my]->len --;
                 wmove(imscr, sy, sx);
                 wdelch(imscr);
@@ -295,23 +304,21 @@ int ProcessKeyhit(void) {
                     lines.lastIndex --;
                     sy --;
                     my --;
-                    sx = lines.arr[my]->len;
+                    sx = lines.arr[my]->len - 1;
                     mx = sx;
                     wmove(imscr, sy, sx);
                     Refresh();
                     dirty = true;
-                    // Need to delete the old line both from mem and from scr
                 } else if (my > 0) {
                     wscrl(imscr, -1);
                     SHIFTLEFT(lines.arr, my, lines.lastIndex);
                     lines.lastIndex --;
                     my --;
-                    sx = lines.arr[my]->len;
+                    sx = lines.arr[my]->len - 1;
                     mx = sx;
                     wmove(imscr, sy, sx);
                     Refresh();
                     dirty = true;
-                    // Need to delete the old line both from mem and from scr
                 }
             }
             return SIGNAL_SWITCH_TO_INPUTMODE;

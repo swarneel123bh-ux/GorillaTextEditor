@@ -150,16 +150,24 @@ void InsertNewLine(void) {
     lines.arr[my] = Line(); // Set new mem pos to a line pointer
     my --;; // Line we are currently on should not change
     Refresh();
+    return;
 }
 
 // Insert a new line above the current line
 void InsertNewLineAbove(void) {
-
+    sx = 0;
+    mx = 0;
+    wmove(imscr, sy, sx);
+    crlf();
+    sy --;
+    my --;
+    wmove(imscr, sy, sx);
+    return;
 }
 
 // Insert into current line
 void InsertInLine(int ch) {
-    SHIFTRIGHT(lines.arr[my]->buf, mx, lines.lastIndex);
+    SHIFTRIGHT(lines.arr[my]->buf, mx, lines.arr[my]->alcdSiz);
     lines.arr[my]->buf[mx] = ch;
     lines.arr[my]->len ++;
     wattron(imscr, COLOR_PAIR(NORMAL_TEXT));    
@@ -169,6 +177,8 @@ void InsertInLine(int ch) {
     mx ++;
     wmove(imscr, sy, sx);
     Refresh();
+    dirty = true;
+    return;
 }
 
 // Do all the stuff that is required here

@@ -119,6 +119,7 @@ int main(int argc, char** argv) {
                 break;
             }
             case SIGNAL_SWITCH_TO_COMMANDMODE: {
+                Message("COMMANDMODE");
                 currentMode = COMMANDMODE;
                 break;
             }
