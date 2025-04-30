@@ -1,205 +1,178 @@
-#include "general.h"
-#include "mem.h"
-#include "commandmode.h"
 #include "inputmode.h"
 
+// After loading from memory, simply prints out to imscr
+void PrintLoadedFile(void) {
+    wattron(imscr, COLOR_PAIR(NORMAL_TEXT));
+
+    for (int i = 0; i <= lines.lastIndex; i ++) {
+        mvwprintw(imscr, sy, sx, "%s", lines.arr[my]->buf);
+        my ++; sy ++;
+    }
+
+    my = 0;
+    sy = 0;
+    sx = 0;
+    sy = 0;
+    wattroff(imscr, COLOR_PAIR(NORMAL_TEXT));
+    return;
+}
+
 // Normal UP arrow key effect
-void IMSCR_CURS_NAV_UP() {
-    if (IMSCR_MEM_Y == 0) { IMSCR_MEM_X = 0; IMSCR_CURS_X = 0; }
-    else if (IMSCR_CURS_Y == 0) {
-        if (IMSCR_MEM_Y > 0) {
-            wscrl(imScr->win->window, -1);
-            mvwprintw(imScr->win->window, IMSCR_CURS_Y, 0, "%s",
-            IMSCR_CURLINE_BUF);
-            IMSCR_MEM_Y --;
-            IMSCR_CURS_X = min(IMSCR_CURLINE->len, IMSCR_CURS_X);
-            IMSCR_MEM_X = IMSCR_CURS_X;
-        } else { IMSCR_MEM_X = 0; IMSCR_CURS_X = 0; }
+void cursor_up(void) {
+    if (my == 0) { mx = 0; sx = 0; }
+    else if (sy == 0) {
+        if (my > 0) {
+            wscrl(imscr, -1);
+            mvwprintw(imscr, sy, 0, "%s",
+            lines.arr[my]->buf);
+            my --;
+            sx = min(lines.arr[my]->len, sx);
+            mx = sx;
+        } else { mx = 0; sx = 0; }
     }
     else {
-        IMSCR_CURS_Y --;
-        IMSCR_MEM_Y --;
-        IMSCR_CURS_X = min(IMSCR_CURLINE->len, IMSCR_CURS_X);
-        IMSCR_MEM_X = IMSCR_CURS_X;
+        sy --;
+        my --;
+        sx = min(lines.arr[my]->len, sx);
+        mx = sx;
     }
-    IMSCR_CURS_MOVE();
+    wmove(imscr, sy, sx);
 }
+
 
 // Normal DOWN arrow key effect
 // If cursor y coord is at end of the screen, scroll
 // If mem y coord is at end of linearr, do nothing
-void IMSCR_CURS_NAV_DOWN() {
-    if (IMSCR_MEM_Y == imScr->nLines - 1) {
-        if (IMSCR_MEM_X == IMSCR_CURLINE->len) {}
-        else { IMSCR_CURS_X = IMSCR_CURLINE->len; IMSCR_MEM_X = IMSCR_CURS_X; }
-    } else if (IMSCR_CURS_Y == imScr->win->wCursLines - 1) {
-        wscrl(imScr->win->window, 1);
-        IMSCR_MEM_Y ++;
-        mvwprintw(imScr->win->window, IMSCR_CURS_Y, 0, "%s",
-        IMSCR_CURLINE_BUF);
-        IMSCR_CURS_X = min(IMSCR_CURS_X, IMSCR_CURLINE->len);
-        IMSCR_MEM_X = IMSCR_CURS_X;
+void cursor_down(void) {
+    if (my == lines.lastIndex) {
+        if (mx == lines.arr[my]->len) {}
+        else { sx = lines.arr[my]->len; mx = sx; }
+    } else if (sy == imscrnlines - 1) {
+        wscrl(imscr, 1);
+        my ++;
+        mvwprintw(imscr, sy, 0, "%s", lines.arr[my]->buf); sx = min(sx, lines.arr[my]->len); 
+        mx = sx;
     } else {
-        IMSCR_MEM_Y ++;
-        IMSCR_CURS_Y ++;
-        IMSCR_CURS_X = min(IMSCR_CURS_X, IMSCR_CURLINE->len);
-        IMSCR_MEM_X = IMSCR_CURS_X;
+        my ++;
+        sy ++;
+        sx = min(sx, lines.arr[my]->len);
+        mx = sx;
     }
-    IMSCR_CURS_MOVE();
+    wmove(imscr, sy, sx);
 }
 
 // Normal LEFT arrow key effect
-void IMSCR_CURS_NAV_LEFT() {
-    if (IMSCR_CURS_X > 0) { IMSCR_CURS_X --; IMSCR_MEM_X = IMSCR_CURS_X; }
-    else if (IMSCR_CURS_Y > 0) {
-        IMSCR_CURS_Y --;
-        IMSCR_MEM_Y --;
-        IMSCR_CURS_X = IMSCR_CURLINE->len;
-        IMSCR_MEM_X = IMSCR_CURS_X;
-    } else if (IMSCR_MEM_Y > 0) {
-        wscrl(imScr->win->window, -1);
-        IMSCR_MEM_Y --;
-        mvwprintw(imScr->win->window, IMSCR_CURS_Y, 0, "%s",
-        IMSCR_CURLINE_BUF);
-        IMSCR_CURS_X = IMSCR_CURLINE->len;
-        IMSCR_MEM_X = IMSCR_CURS_X;
+void cursor_left(void) {
+    if (sx > 0) { sx --; mx = sx; }
+    else if (sy > 0) {
+        sy --;
+        my --;
+        sx = lines.arr[my]->len;
+        mx = sx;
+    } else if (my > 0) {
+        wscrl(imscr, -1);
+        my --;
+        mvwprintw(imscr, sy, 0, "%s", lines.arr[my]->buf);
+        sx = lines.arr[my]->len;
+        mx = sx;
     } else { }
-    IMSCR_CURS_MOVE();
+    wmove(imscr, sy, sx);
 }
 
 // Normal RIGHT arrow key effect
-void IMSCR_CURS_NAV_RIGHT() {
+void cursor_right(void) {
     // RIGHT ARROW KEY FAULTY, SEGFAULT WHEN AT END OF FILE
-    if (IMSCR_CURS_X < IMSCR_CURLINE->len) { IMSCR_CURS_X ++; IMSCR_MEM_X = IMSCR_CURS_X; }
-    else if ((IMSCR_CURS_Y < imScr->win->wCursLines-1) && (IMSCR_MEM_Y < imScr->nLines-1)) {
-        IMSCR_CURS_Y ++;
-        IMSCR_MEM_Y ++;
-        IMSCR_CURS_X = 0;
-        IMSCR_MEM_X = IMSCR_CURS_X;
-    } else if (IMSCR_MEM_Y < imScr->nLines-1) {
-        wscrl(imScr->win->window, 1);
-        IMSCR_MEM_Y ++;
-        mvwprintw(imScr->win->window, IMSCR_CURS_Y, 0, "%s",
-        IMSCR_CURLINE_BUF);
-        IMSCR_CURS_X = 0;
-        IMSCR_MEM_X = 0;
+    if (sx < lines.arr[my]->len) { sx ++; mx = sx; }
+    else if ((sy < imscrnlines - 1) && (my < lines.lastIndex)) {
+        sy ++;
+        my ++;
+        sx = 0;
+        mx = sx;
+    } else if (my < lines.lastIndex) {
+        wscrl(imscr, 1);
+        my ++;
+        mvwprintw(imscr, sy, 0, "%s", lines.arr[my]->buf);
+        sx = 0; mx = 0;
     } else {}
-    IMSCR_CURS_MOVE();
+    wmove(imscr, sy, sx);
+    return;
 }
 
-/*
-Adds a new line underneath current line, copies the content of the
-current line to the right of current cursor position,
-pastes the copied content into the new line
-DOES NOT account for scrolling, needs to be checked separately
-*/
-void IMSCR_CRLF() {
+// Normal ENTER key effect
+void crlf(void) {
     InsertNewLine();
     char copyBuf[1000]; memset(copyBuf, 0, sizeof(char) * 1000);
-    memcpy(copyBuf, (IMSCR_CURLINE_BUF + IMSCR_MEM_X), sizeof(char) * strlen(IMSCR_CURLINE_BUF + IMSCR_MEM_X));
-    memset((IMSCR_CURLINE_BUF + IMSCR_MEM_X), 0, sizeof(char) * strlen(IMSCR_CURLINE_BUF + IMSCR_MEM_X));
-    wclrtoeol(imScr->win->window);
-    IMSCR_CURLINE->len -= strlen(copyBuf);
-    IMSCR_CURS_Y ++;
-    IMSCR_MEM_Y ++;
-    IMSCR_CURS_X = 0;
-    IMSCR_MEM_X = 0;
-    IMSCR_CURS_MOVE();
+    memcpy(copyBuf, (lines.arr[my]->buf + mx), sizeof(char) * strlen(lines.arr[my]->buf + mx));
+    memset((lines.arr[my]->buf + mx), 0, sizeof(char) * strlen(lines.arr[my]->buf + mx));
+    wclrtoeol(imscr);
+    lines.arr[my]->len -= strlen(copyBuf);
+    sy ++;
+    my ++;
+    sx = 0;
+    mx = 0;
+    wmove(imscr, sy, sx);
     char c_; int i = 0;
-    while ((c_ = copyBuf[i++])) {
-        InsertInLine(c_);
-    }
-    IMSCR_CURS_X = 0;
-    IMSCR_MEM_X = 0;
-    IMSCR_CURS_MOVE();
-    REFRESH();
+    while ((c_ = copyBuf[i++])) { InsertInLine(c_); }
+    sx = 0;
+    mx = 0;
+    wmove(imscr, sy, sx);
+    Refresh();
 }
 
-/*
-Insert a new line UNDER the current line
-
-Create a line in memory and shift everything to the right of current line
-to the right. Then add new line to current position
-
-Ncurses inserts line ABOVE current y coord so we need to take care of that
-by going down by 1 first and then inserting the line and then coming back
-
-This wont be an issue in normal func calls and the function would keep all coords unchanged
-*/
-void InsertNewLine() {
+// Insert a new line underneath the current line
+void InsertNewLine(void) {
     // Insert the new line on screen underneath current line
-    IMSCR_CURS_Y ++;
-    IMSCR_CURS_MOVE();
-    winsertln(imScr->win->window);  // Inserts new line above current line and pushes everything else down
-    IMSCR_CURS_Y--; // Go back to original line position
-    IMSCR_CURS_MOVE();
+    sy ++;
+    wmove(imscr, sy, sx);
+    winsertln(imscr);  // Inserts new line above current line and pushes everything else down
+    sy--; // Go back to original line position
+    wmove(imscr, sy, sx);
 
     // Add new line to memory if close to using up all available lines
     // Increase allocated space
-    if (imScr->nLines >= (imScr->nPossibleLines - 10)) {
+    if (lines.lastIndex + 1 >= (lines.alcdSiz - 10)) {
         // add a whole window worth of lines to the previous size
-        imScr->nPossibleLines += imScr->nPossibleLines; // Dont forget to double this as well
-        int newSize = sizeof(line*) * imScr->nPossibleLines;
-        line** temp = (line**) realloc(imScr->lines, newSize);
+        lines.alcdSiz += lines.alcdSiz; // Dont forget to double this as well
+        int newSize = sizeof(line*) * lines.alcdSiz;
+        line** temp = (line**) realloc(lines.arr, newSize);
         if (!temp) {
             Message("ERROR : Cannot add new line; Exiting...");
-            SLEEP(3);
+            Sleep(3);
             ExitProgram(ERR_MEM_LINE_ADD_FAIL);
         }
-        imScr->lines = temp;    // Set lines to new allocated mem
+        lines.arr = temp;    // Set lines to new allocated mem
     }
 
-    imScr->nLines ++;       // Increase the number of lines currently available
+    lines.lastIndex ++;       // Increase the number of lines currently available
     // Shift the currently stored lines down by one slot at current line pos
-    IMSCR_MEM_Y ++;
-    SHIFTRIGHT(imScr->lines, IMSCR_MEM_Y, imScr->nPossibleLines);    
-    imScr->lines[IMSCR_MEM_Y] = NewLine(); // Set new mem pos to a line pointer
-    IMSCR_MEM_Y --; // Line we are currently on should not change
-    REFRESH();
+    my ++;
+    SHIFTRIGHT(lines.arr, my, lines.lastIndex + 1);    
+    lines.arr[my] = Line(); // Set new mem pos to a line pointer
+    my --;; // Line we are currently on should not change
+    Refresh();
 }
 
-/*
-Inserts a new line ABOVE the current line, all functionality same as normal
-insert except this
-*/
-void InsertNewLineAbove() {
-    // Inserts new line above current line and pushes everything else down
-    winsertln(imScr->win->window);  
+// Insert a new line above the current line
+void InsertNewLineAbove(void) {
 
-    // Add new line to memory if close to using up all available lines
-    // Increase allocated space
-    if (imScr->nLines >= (imScr->win->wCursLines - 5)) {
-        int newSize = sizeof(line*) * ((sizeof(imScr->lines) / sizeof(line*) + imScr->nPossibleLines));
-        line** temp = (line**) realloc(imScr->lines, newSize);
-        if (!temp) {
-            Message("ERROR : Cannot add new line\n");
-            SLEEP(3);
-            ExitProgram(ERR_MEM_LINE_ADD_FAIL);
-        }
-        imScr->lines = temp;    // Set lines to new allocated mem
-        imScr->nPossibleLines += imScr->nPossibleLines;
-    }
-
-    imScr->nLines ++;       // Increase the number of lines currently available
-    // Shift the currently stored lines down by one slot at current line pos
-    SHIFTRIGHT(imScr->lines, IMSCR_MEM_Y, imScr->nLines);    
-    imScr->lines[IMSCR_MEM_Y] = NewLine(); // Set new mem pos to a line pointer
-    REFRESH();
 }
 
-
-/*
-Given the character ch, insert it into the current position on the imScr->win
-*/
+// Insert into current line
 void InsertInLine(int ch) {
-    SHIFTRIGHT(IMSCR_CURLINE_BUF, IMSCR_MEM_X, IMSCR_CURLINE->maxLen);
-    IMSCR_CURLINE_BUF[IMSCR_MEM_X] = ch;
-    IMSCR_CURLINE->len ++;
-    wattron(imScr->win->window, COLOR_PAIR(NORMAL_TEXT));    
-    winsch(imScr->win->window, ch);
-    wattroff(imScr->win->window, COLOR_PAIR(NORMAL_TEXT));    
-    IMSCR_CURS_X ++; 
-    IMSCR_MEM_X ++;
-    IMSCR_CURS_MOVE(); 
-    REFRESH();
+    SHIFTRIGHT(lines.arr[my]->buf, mx, lines.lastIndex);
+    lines.arr[my]->buf[mx] = ch;
+    lines.arr[my]->len ++;
+    wattron(imscr, COLOR_PAIR(NORMAL_TEXT));    
+    winsch(imscr, ch);
+    wattroff(imscr, COLOR_PAIR(NORMAL_TEXT));    
+    sx ++; 
+    mx ++;
+    wmove(imscr, sy, sx);
+    Refresh();
+}
+
+// Do all the stuff that is required here
+int RunInputMode(void) {
+    int keyhitresult = ProcessKeyhit();
+    return keyhitresult;
 }

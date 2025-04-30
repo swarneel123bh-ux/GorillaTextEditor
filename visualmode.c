@@ -1,115 +1,131 @@
 #include "visualmode.h"
-#include "mem.h"
 #include "general.h"
+#include "commandmode.h"
 #include "inputmode.h"
 
-/*
-Select a part of text, highlight the selected part and
-return the coordinates for clipboard reference
+// Do all the stuff, including highlighting, copy/cut to clipboard (NEED TO DEFINE CLIPBOARD)
+int RunVisualMode(void) {
+    int starty, startx, endy, endx;
+    starty = sy;
+    startx = sx;
+    endy = starty;
+    endx = startx;
+    int lasty = sy, lastx = sx;
+    while (currentMode == VISUALMODE) {
+        lasty = endy;      // Update last position to previous end
+        lastx = endx;
+        int keyhitresult = ProcessKeyhit();   // <-- First process movement
+        ClearHighlight(&starty, &startx, &lasty, &lastx);   // Clear using lasty/lastx
+        endy = sy;         // Update current end after movement
+        endx = sx;
+        Highlight(&starty, &startx, &endy, &endx);   // Draw new highlight
+        Refresh();
+        if (keyhitresult == SIGNAL_SWITCH_TO_NORMALMODE) break;
+    }
+    return SIGNAL_SWITCH_TO_NORMALMODE;
+}
 
-Depending on mode, we can either select stuff character by character
-or line by line
+// Clear highlight of piece of text given by (starty, startx) to (endy, endx)
+// NEED TO FIND TOPLEFT AND BOTTOMRIGHT OF EACH HIGhLIGHT SEGMENT
+void ClearHighlight(int* starty, int* startx, int* endy, int* endx) {
+    // Find out the y-coordinates for the start of the highlighting
+    int miny = min(*starty, *endy);
+    // Now find the x coord for the miny coord and x coord for maxy coord as well
+    int y1, x1, y2, x2;
 
-if mode is BYLINE then we highlight a non-highlighter line and select that,
-and de-highlight a highlighted line and deselect that
+    if (miny == *starty) {
+        y1 = *starty;
+        x1 = *startx;
+        y2 = *endy;
+        x2 = *endx;
+    } else if (miny == *endy) {
+        y1 = *endy;
+        x1 = *endx;
+        y2 = *starty;
+        x2 = *startx;
+    } else {
+        y1 = *starty;
+        x1 = *startx;
+        y2 = *endy;
+        x2 = *endx;
+    }
 
-if mode is BYCHAR then we do the same thing by character by character
+    if (y1 == y2) {
+        x1 = min(*startx, *endx);
+        x2 = max(*startx, *endx);
+        for (int j = x1; j <= x2; j ++) {
+            mvwchgat(imscr, y1, j, 1, A_NORMAL, NORMAL_TEXT, NULL);
+        }
+        return;
+    }
 
-See vim-motions for reference
-*/
-void Select(int mode, int* startY, int* startX, int* endY, int* endX) {
-    curs_set(0);
-
-    switch (mode) {
-        case BY_LINE:
-        case BY_CHAR: {
-            while (visualmode_running) {
-                int ch = wgetch(imScr->win->window);   // Get keyhit
-
-                // for (int i = min(*startY, *endY); i <= max(*startY, *endY); i++) {
-                //     for (int j = min(*startX, *endX); j <= max(*startX, *endX); j ++) {
-                //         wmove(imScr->win->window, i, j);
-                //         wchgat(imScr->win->window, 1, A_NORMAL, HIGHLIGHTED_TEXT, NULL);
-                //     }
-                // }
-                
-                switch (ch) {
-                    case ESC: {
-                        Message("ESCAPE");
-                        currentMode = NORMALMODE;
-                        visualmode_running = false;
-                        *endY = IMSCR_CURS_X;
-                        *endX = IMSCR_CURS_Y;
-                        CLEAR_HIGHLIGHT(*startY, *startX, *endY, *endX);
-                        curs_set(1);
-                        return;
-                        break;
-                    }
-
-                    // Navigation keys
-                    case k:
-                    case KEY_UP: { 
-                        IMSCR_CURS_NAV_UP();
-                        *endY = IMSCR_CURS_Y;
-                        *endX = IMSCR_CURS_X;
-                        HIGHLIGHT(*startY, *startX, *endY, *endX);
-                        break;
-                    }
-
-                    case j:
-                    case KEY_DOWN: {
-                        IMSCR_CURS_NAV_DOWN();
-                        *endY = IMSCR_CURS_Y;
-                        *endX = IMSCR_CURS_X;
-                        HIGHLIGHT(*startY, *startX, *endY, *endX);
-                        break;
-                    }
-
-                    case h: 
-                    case KEY_LEFT: {
-                        IMSCR_CURS_NAV_LEFT();
-                        *endY = IMSCR_CURS_Y;
-                        *endX = IMSCR_CURS_X;
-                        HIGHLIGHT(*startY, *startX, *endY, *endX);
-                        break;
-                    }
-
-                    case l:
-                    case KEY_RIGHT: {
-                        IMSCR_CURS_NAV_RIGHT();
-                        *endY = IMSCR_CURS_Y;
-                        *endX = IMSCR_CURS_X;
-                        HIGHLIGHT(*startY, *startX, *endY, *endX);
-                        break;
-                    }
-                
-                    default: {}
-                }
+    for (int i = y1; i <= y2; i ++) {
+        if (i == y1) {
+            for (int j = x1; j <= lines.arr[i]->len - 1; j ++) {
+                mvwchgat(imscr, i, j, 1, A_NORMAL, NORMAL_TEXT, NULL);
             }
-            break;
+        } else if (i == y2) {
+            for (int j = 0; j <= x2; j ++) {
+                mvwchgat(imscr, i, j, 1, A_NORMAL, NORMAL_TEXT, NULL);
+            }
+        } else {
+            for (int j = 0; j <= lines.arr[i]->len - 1; j ++) {
+                mvwchgat(imscr, i, j, 1, A_NORMAL, NORMAL_TEXT, NULL);
+            }
         }
     }
 
+    return;
 }
 
-// note :: need to implement visualmode before these can be used
-/*
-copy the contents that fall between the starting coordinates and ending coordinates,
-into the clipboard buffer
-*/
-void copy() {}
+// Highlight a piece of text given by (starty, startx) to (endy, endx)
+// NEED TO FIND TOPLEFT AND BOTTOMRIGHT OF EACH HIGhLIGHT SEGMENT
+void Highlight(int* starty, int* startx, int* endy, int* endx) {
+    // Find out the y-coordinates for the start of the highlighting
+    int miny = min(*starty, *endy);
+    // Now find the x coord for the miny coord and x coord for maxy coord as well
+    int y1, x1, y2, x2;
 
-/*
-copy the contents that fall between the starting and ending coords into the
-clipboard buffer and also remove them from the screen properly
-*/
-void cut() {}
+    if (miny == *starty) {
+        y1 = *starty;
+        x1 = *startx;
+        y2 = *endy;
+        x2 = *endx;
+    } else if (miny == *endy) {
+        y1 = *endy;
+        x1 = *endx;
+        y2 = *starty;
+        x2 = *startx;
+    } else {
+        y1 = *starty;
+        x1 = *startx;
+        y2 = *endy;
+        x2 = *endx;
+    }
 
-/*
-paste the contents of a buffer at current cusor position and move cursor to the end of the pasted stuff
-*/
-void paste(char* buf) {
-    int ch;
-    int i = 0;
-    while ((ch = buf[i++])) InsertInLine(ch);
+    if (y1 == y2) {
+        x1 = min(*startx, *endx);
+        x2 = max(*startx, *endx);
+        for (int j = x1; j <= x2; j ++) {
+            mvwchgat(imscr, y1, j, 1, A_NORMAL, HIGHLIGHTED_TEXT, NULL);
+        }
+        return;
+    }
+
+    for (int i = y1; i <= y2; i ++) {
+        if (i == y1) {
+            for (int j = x1; j <= lines.arr[i]->len - 1; j ++) {
+                mvwchgat(imscr, i, j, 1, A_NORMAL, HIGHLIGHTED_TEXT, NULL);
+            }
+        } else if (i == y2) {
+            for (int j = 0; j <= x2; j ++) {
+                mvwchgat(imscr, i, j, 1, A_NORMAL, HIGHLIGHTED_TEXT, NULL);
+            }
+        } else {
+            for (int j = 0; j <= lines.arr[i]->len - 1; j ++) {
+                mvwchgat(imscr, i, j, 1, A_NORMAL, HIGHLIGHTED_TEXT, NULL);
+            }
+        }
+    }
+    return;
 }
