@@ -63,12 +63,21 @@ int main(int argc, char** argv) {
     keypad(cmscr, true);
 
     // memory setup
+    // Initializeing the lines array
     // Loading 1000 empty line pointers to memory and keeping it constant should not affect performance i think
     lines.arr = (line**) malloc (sizeof(line*) * MAXBUFLEN);    
     lines.lastIndex = 0;
     lines.alcdSiz = MAXBUFLEN;  // This size is in units not bytes
     for (int i = 0; i < MAXBUFLEN; i ++) {
         lines.arr[i] = Line();
+    }
+
+    // Initialzing the clipboard array
+    clipboard.arr = (line**) malloc(sizeof(line*) * MAXCLIPBOARDBUFLEN);   // NOTE : CLIPBOARD SIZE IS 100 HERE
+    clipboard.lastIndex = 0;
+    clipboard.alcdSiz = MAXCLIPBOARDBUFLEN;
+    for (int i = 0; i < MAXCLIPBOARDBUFLEN; i ++) {
+        clipboard.arr[i] = Line();
     }
 
     // Load from file

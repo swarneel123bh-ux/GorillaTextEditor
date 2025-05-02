@@ -81,10 +81,18 @@ void LoadFromFile(void) {
 
 // Deallocate all memory and exit program safely
 void ExitProgram(int errcode) {
+    // Clear the lines array properly
     for (int i = 0; i <= lines.lastIndex; i ++) {
         free(lines.arr[i]->buf);    // Free the character buffer
         free(lines.arr[i]);         // Free the line pointer itself
     }
+
+    // Clear the clipboard properly
+    for (int i = 0; i <= clipboard.lastIndex; i ++) {
+        free(clipboard.arr[i]->buf);    // Free the character buffer
+        free(clipboard.arr[i]);         // Free the line pointer itself
+    }
+
     running = false;
     PrintError(errcode);
     return;
@@ -254,6 +262,22 @@ int ProcessKeyhit(void) {
         case V: {
             if (currentMode == NORMALMODE) return SIGNAL_SWITCH_TO_VISUALMODE;
             else { InsertInLine('V'); dirty = true; return SIGNAL_SWITCH_TO_INPUTMODE; }
+            break;
+        }
+
+        case c: {
+            // If in visualmode, then copy the selected text and return to normalmode
+            // Else insert 'c' at current cursor position
+            if (currentMode == VISUALMODE) { return SIGNAL_COPY_SELECTED_TEXT_AND_SWITCH_TO_NORMALMODE; }
+            else { InsertInLine('c'); dirty = true; return SIGNAL_SWITCH_TO_INPUTMODE; }
+            break;
+        }
+
+        case x: {
+            // If in visualmode, then cut the selected text and return to normalmode
+            // Else insert 'x' at current cursor position
+            if (currentMode == VISUALMODE) { return SIGNAL_CUT_SELECTED_TEXT_AND_SWITCH_TO_NORMALMODE; }
+            else { InsertInLine('c'); dirty = true; return SIGNAL_SWITCH_TO_INPUTMODE; }
             break;
         }
 

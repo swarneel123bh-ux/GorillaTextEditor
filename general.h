@@ -10,6 +10,7 @@
 
 // Constants
 #define MAXBUFLEN 1000  // Maximum size any buffer can have, redefine this constant when required
+#define MAXCLIPBOARDBUFLEN 100  // Maximum size the clipboard buffer can have
 #define NORMALMODE 0
 #define COMMANDMODE 1
 #define INPUTMODE 2
@@ -21,6 +22,8 @@
 #define SIGNAL_SWITCH_TO_INPUTMODE 2
 #define SIGNAL_SWITCH_TO_VISUALMODE 3
 #define SIGNAL_SWITCH_TO_COMMANDMODE 4
+#define SIGNAL_COPY_SELECTED_TEXT_AND_SWITCH_TO_NORMALMODE 5
+#define SIGNAL_CUT_SELECTED_TEXT_AND_SWITCH_TO_NORMALMODE 6
 
 // highlighting colors
 #define NORMAL_TEXT 1
@@ -57,6 +60,7 @@ typedef struct lineArr {
     line** arr;     // Actual array of line pointers, is of size alcdSiz
 } lineArr;
 
+
 // Global vars
 bool running;                   // Exit flag
 bool dirty;                     // Write-require check
@@ -75,6 +79,7 @@ WINDOW* cmscrbg;    // Just to make drawing background easy
 int sx, sy, mx, my;   // x,y are screen coords, will be limited by dimensions,
 // mx, my are memory indices, so will be limited by number of lines on screen
 lineArr lines;      // Struct to contain text data in structured format
+lineArr clipboard;  // Smaller line array, basically functions as a clipboard
 
 
 // General Functions
