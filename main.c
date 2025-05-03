@@ -72,14 +72,6 @@ int main(int argc, char** argv) {
         lines.arr[i] = Line();
     }
 
-    // Initialzing the clipboard array
-    clipboard.arr = (line**) malloc(sizeof(line*) * MAXCLIPBOARDBUFLEN);   // NOTE : CLIPBOARD SIZE IS 100 HERE
-    clipboard.lastIndex = 0;
-    clipboard.alcdSiz = MAXCLIPBOARDBUFLEN;
-    for (int i = 0; i < MAXCLIPBOARDBUFLEN; i ++) {
-        clipboard.arr[i] = Line();
-    }
-
     // Load from file
     memset(filename, 0, sizeof(char) * FILENAME_MAX);
     strcpy(filename, (argc > 1)? argv[1] : "Untitled");
@@ -96,11 +88,11 @@ int main(int argc, char** argv) {
     while (running) {
         // Process current mode operation
         switch (currentMode) {
-            case NORMALMODE: { retval = RunNormalMode(); break; }
-            case VISUALMODE: { retval = RunVisualMode(); break; }
-            case INPUTMODE: { retval = RunInputMode(); break; }
-            case COMMANDMODE: { retval = RunCommandMode(); break; }
-            default: { ExitProgram(ERR_UNDEFINED_MODE); }
+            case NORMALMODE:    { retval = RunNormalMode(); break; }
+            case VISUALMODE:    { retval = RunVisualMode(); break; }
+            case INPUTMODE:     { retval = RunInputMode(); break; }
+            case COMMANDMODE:   { retval = RunCommandMode(); break; }
+            default:            { ExitProgram(ERR_UNDEFINED_MODE); }
         }
 
         // Process the return value from each mode

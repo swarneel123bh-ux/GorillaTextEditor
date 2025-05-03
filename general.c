@@ -6,6 +6,7 @@
 #include "commandmode.h"
 #include "general.h"
 #include "inputmode.h"
+#include "visualmode.h"
 
 // Refresh the screens
 void Refresh(void) {
@@ -85,12 +86,6 @@ void ExitProgram(int errcode) {
     for (int i = 0; i <= lines.lastIndex; i ++) {
         free(lines.arr[i]->buf);    // Free the character buffer
         free(lines.arr[i]);         // Free the line pointer itself
-    }
-
-    // Clear the clipboard properly
-    for (int i = 0; i <= clipboard.lastIndex; i ++) {
-        free(clipboard.arr[i]->buf);    // Free the character buffer
-        free(clipboard.arr[i]);         // Free the line pointer itself
     }
 
     running = false;
@@ -280,6 +275,39 @@ int ProcessKeyhit(void) {
             else { InsertInLine('c'); dirty = true; return SIGNAL_SWITCH_TO_INPUTMODE; }
             break;
         }
+
+        case p: {
+            if (currentMode == NORMALMODE) {
+                Paste();
+                return SIGNAL_SWITCH_TO_NORMALMODE;
+            } else if (currentMode == VISUALMODE) {
+                // NEED TO DO SOME EXTRA STUFF HERE
+                Paste();
+                return SIGNAL_SWITCH_TO_NORMALMODE;
+            } else if (currentMode == INPUTMODE) {
+                InsertInLine('p');
+                dirty = true;
+                return SIGNAL_SWITCH_TO_INPUTMODE;
+            }
+            break;
+        }
+        
+        case P: {
+            if (currentMode == NORMALMODE) {
+                Paste();
+                return SIGNAL_SWITCH_TO_NORMALMODE;
+            } else if (currentMode == VISUALMODE) {
+                // NEED TO DO SOME EXTRA STUFF HERE
+                Paste();
+                return SIGNAL_SWITCH_TO_NORMALMODE;
+            } else if (currentMode == INPUTMODE) {
+                InsertInLine('P');
+                dirty = true;
+                return SIGNAL_SWITCH_TO_INPUTMODE;
+            }
+            break;
+        }
+
 
         case COLON: {
             if (currentMode == NORMALMODE) {

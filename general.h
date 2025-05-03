@@ -34,6 +34,7 @@
 #define ERR_UNDEFINED_MODE 1
 #define ERR_MEM_LINE_ADD_FAIL 2
 #define ERR_WRITE_FAIL_FILE_OPEN_FAILURE 3
+#define ERR_MEM_REALLOC_FAIL 4
 
 // Macros for shortcuts
 #define min(a, b) (a < b)? a : b
@@ -60,6 +61,11 @@ typedef struct lineArr {
     line** arr;     // Actual array of line pointers, is of size alcdSiz
 } lineArr;
 
+typedef struct Clipboard {
+    int lastIndex;  // Gives the number of lines stored in clipboard
+    line** arr;     // Stores the pointers to the actual lines, need to dynamically allocate and reallocate space for lines
+} clipboard;
+
 
 // Global vars
 bool running;                   // Exit flag
@@ -79,7 +85,7 @@ WINDOW* cmscrbg;    // Just to make drawing background easy
 int sx, sy, mx, my;   // x,y are screen coords, will be limited by dimensions,
 // mx, my are memory indices, so will be limited by number of lines on screen
 lineArr lines;      // Struct to contain text data in structured format
-lineArr clipboard;  // Smaller line array, basically functions as a clipboard
+clipboard cb;       // Clipboard struct, to be used for copy-paste-cut-paste functionality
 
 
 // General Functions
