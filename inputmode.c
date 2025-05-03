@@ -1,5 +1,8 @@
 #include "inputmode.h"
 
+// SCROLLING IS BROKEN!!!
+
+
 // After loading from memory, simply prints out to imscr
 void PrintLoadedFile(void) {
     wattron(imscr, COLOR_PAIR(NORMAL_TEXT));
