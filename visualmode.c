@@ -142,6 +142,8 @@ void Highlight(int starty, int startx, int endy, int endx) {
 
 // Select a piece of text and copy to clipboard
 void Copy(int starty, int startx, int endy, int endx) {
+    // IDYK if i need to free the entire clipboard or not, because since im reallocating, freein the clipboard
+    // will cause null pointer derefencing issues
     int miny = min(starty, endy);
     int y1, x1, y2, x2;
 
@@ -153,7 +155,8 @@ void Copy(int starty, int startx, int endy, int endx) {
         y1 = starty; x1 = startx; y2 = endy; x2 = endx;
     }
 
-
+    // Clear the clipboard of the old data
+    // If we clear only when we copy, then we can paste multiple times
     // Reallocate memory for cb
     cb.lastIndex = y2 - y1;
     line** temp = (line**) realloc(cb.arr, sizeof(line*) * (cb.lastIndex + 1));
@@ -194,22 +197,20 @@ void Cut(int starty, int startx, int endy, int endx) {
 
 void Paste(void) {
     
-    // FOR NOW, PASTE INTO A LOGFILE
-    FILE* f = fopen("PasteTestFile.txt", "w");
-    if (!f) { ExitProgram(ERR_WRITE_FAIL_FILE_OPEN_FAILURE); }
+    // Paste all the lines in clipboard to the current cursor position
 
-    for (int i = 0; i <= cb.lastIndex; i ++) {
-        fprintf(f, "%s\n", cb.arr[i]->buf);
+    int i;
+    for (i = 0; i <= cb.lastIndex - 1; i ++) {  // We are going to print the last line separately to make sure
+    // We dont accidentally print out another empty line at the end 
+        for (int j = 0; j < cb.arr[i]->len - 1; j ++) {
+            InsertInLine(cb.arr[i]->buf[j]);
+        }
+        crlf();
+    }
+    for (int j = 0; j < cb.arr[i]->len - 1; j ++) {
+        InsertInLine(cb.arr[i]->buf[j]);
     }
 
-    fclose(f);
-    
-    for (int i = 0; i <= cb.lastIndex; i ++) {
-        free(cb.arr[i]->buf);
-        free(cb.arr[i]);
-    } 
-    // IDYK if i need to free the entire clipboard or not, because since im reallocating, freein the clipboard
-    // will cause null pointer derefencing issues
 
     return;
 }
