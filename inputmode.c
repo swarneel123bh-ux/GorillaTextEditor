@@ -139,7 +139,7 @@ void bckspc(void) {
             lines.lastIndex --;
             sy --;
             my --;
-            sx = lines.arr[my]->len - 1;
+            sx = lines.arr[my]->len;
             mx = sx;
             wmove(imscr, sy, sx);
             Refresh();
