@@ -122,6 +122,43 @@ void crlf(void) {
     Refresh();
 }
 
+// Wrapper for backspace key effect
+void bckspc(void) {
+    if (sx > 0) {
+        sx --;
+        mx --;
+        SHIFTLEFT(lines.arr[my]->buf, mx, lines.arr[my]->alcdSiz);
+        lines.arr[my]->len --;
+        wmove(imscr, sy, sx);
+        wdelch(imscr);
+        Refresh();
+        dirty = true;
+    } else {
+        if (sy > 0) {
+            SHIFTLEFT(lines.arr, my, lines.lastIndex + 1);
+            lines.lastIndex --;
+            sy --;
+            my --;
+            sx = lines.arr[my]->len - 1;
+            mx = sx;
+            wmove(imscr, sy, sx);
+            Refresh();
+            dirty = true;
+        } else if (my > 0) {
+            wscrl(imscr, -1);
+            SHIFTLEFT(lines.arr, my, lines.lastIndex);
+            lines.lastIndex --;
+            my --;
+            sx = lines.arr[my]->len - 1;
+            mx = sx;
+            wmove(imscr, sy, sx);
+            Refresh();
+            dirty = true;
+        }
+    }
+    return;
+}
+
 // Insert a new line underneath the current line
 void InsertNewLine(void) {
     // Insert the new line on screen underneath current line

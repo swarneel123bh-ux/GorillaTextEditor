@@ -189,8 +189,63 @@ void Copy(int starty, int startx, int endy, int endx) {
     return;
 }
 
-// Select a piece of text, copy to clipboard and delete from screen
+// Select a piece of text, copy to clipboard and delete from screen and memory
 void Cut(int starty, int startx, int endy, int endx) {
+    // IDYK if i need to free the entire clipboard or not, because since im reallocating, freein the clipboard
+    // will cause null pointer derefencing issues
+    int miny = min(starty, endy);
+    int y1, x1, y2, x2;
+
+    // Find out starting and ending coordinates in proper manner
+    if (miny == starty) { y1 = starty; x1 = startx; y2 = endy; x2 = endx;
+    } else if (miny == endy) {
+        y1 = endy; x1 = endx; y2 = starty; x2 = startx;
+    } else {
+        y1 = starty; x1 = startx; y2 = endy; x2 = endx;
+    }
+
+    // Clear the clipboard of the old data
+    // If we clear only when we copy, then we can paste multiple times
+    // Reallocate memory for cb
+    cb.lastIndex = y2 - y1;
+    line** temp = (line**) realloc(cb.arr, sizeof(line*) * (cb.lastIndex + 1));
+    if (!temp) {
+        ExitProgram(ERR_MEM_REALLOC_FAIL);
+        return;
+
+    }
+    cb.arr = temp;
+    // Set up empty memory to get data from the original line array
+    for (int i = 0; i<= cb.lastIndex; i ++) {
+        cb.arr[i] = Line();
+    }
+
+    // Copy the lines over properly
+    for (int i = 0; i <= cb.lastIndex; i ++) {
+        if (i == 0) {
+            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf + x1, strlen(lines.arr[y1 + i]->buf + x1));
+            cb.arr[i]->len += strlen(cb.arr[i]->buf);
+        } else if (i == cb.lastIndex) {
+            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, strlen(lines.arr[y1 + i]->buf));
+            memset(cb.arr[i]->buf + x2 + 1, 0, strlen(cb.arr[i]->buf + x2 + 0));
+            cb.arr[i]->len += strlen(cb.arr[i]->buf);
+        } else {
+            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, strlen(lines.arr[y1 + i]->buf));
+            cb.arr[i]->len += strlen(cb.arr[i]->buf);
+        }
+    }
+
+    // Now delete the characters to be cut from the screen and memory
+    wmove(imscr, y2, x2);
+    for (int i = y2; i >= y1; i --) {
+        if (i == y2) {
+            for (int j = x2; j >= 0; j --) { bckspc(); }
+        } else if (y == y1) {
+            for (int j = lines.arr[y1]->len; j >= 0; j --) { bckspc(); }
+        } else {
+            for (int j = lines.arr[i]->len; j >= 0; j --) { bckspc(); }
+        }
+    }
 
     return;
 }

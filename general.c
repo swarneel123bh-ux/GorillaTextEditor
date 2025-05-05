@@ -341,38 +341,7 @@ int ProcessKeyhit(void) {
         // Delete key
         case BS:
         case DEL: { 
-            if (sx > 0) {
-                sx --;
-                mx --;
-                SHIFTLEFT(lines.arr[my]->buf, mx, lines.arr[my]->alcdSiz);
-                lines.arr[my]->len --;
-                wmove(imscr, sy, sx);
-                wdelch(imscr);
-                Refresh();
-                dirty = true;
-            } else {
-                if (sy > 0) {
-                    SHIFTLEFT(lines.arr, my, lines.lastIndex + 1);
-                    lines.lastIndex --;
-                    sy --;
-                    my --;
-                    sx = lines.arr[my]->len - 1;
-                    mx = sx;
-                    wmove(imscr, sy, sx);
-                    Refresh();
-                    dirty = true;
-                } else if (my > 0) {
-                    wscrl(imscr, -1);
-                    SHIFTLEFT(lines.arr, my, lines.lastIndex);
-                    lines.lastIndex --;
-                    my --;
-                    sx = lines.arr[my]->len - 1;
-                    mx = sx;
-                    wmove(imscr, sy, sx);
-                    Refresh();
-                    dirty = true;
-                }
-            }
+            bckspc();
             return SIGNAL_SWITCH_TO_INPUTMODE;
             break;
         }
