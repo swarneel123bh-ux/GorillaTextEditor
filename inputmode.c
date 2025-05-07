@@ -135,6 +135,11 @@ void bckspc(void) {
         dirty = true;
     } else {
         if (sy > 0) {
+            // Copy all the stuff to the right of the cursor
+            char copyBuf[1000]; memset(copyBuf, 0, sizeof(char) * 1000);
+            memcpy(copyBuf, (lines.arr[my]->buf), strlen(lines.arr[my]->buf));
+            wdeleteln(imscr);
+            // Shif all lines from the next line up by 1
             SHIFTLEFT(lines.arr, my, lines.lastIndex + 1);
             lines.lastIndex --;
             sy --;
@@ -142,16 +147,28 @@ void bckspc(void) {
             sx = lines.arr[my]->len;
             mx = sx;
             wmove(imscr, sy, sx);
+            // Paste the copied content to the upper line and screen
+            for (int i = 0; i < strlen(copyBuf); i ++) {
+                InsertInLine(copyBuf[i]);
+            }
             Refresh();
             dirty = true;
         } else if (my > 0) {
             wscrl(imscr, -1);
+            // Copy all the stuff to the right of the cursor
+            char copyBuf[1000]; memset(copyBuf, 0, sizeof(char) * 1000);
+            memcpy(copyBuf, (lines.arr[my]->buf), strlen(lines.arr[my]->buf));
+            wdeleteln(imscr);
             SHIFTLEFT(lines.arr, my, lines.lastIndex);
             lines.lastIndex --;
             my --;
             sx = lines.arr[my]->len - 1;
             mx = sx;
             wmove(imscr, sy, sx);
+            // Paste the copied content to the upper line and screen
+            for (int i = 0; i < strlen(copyBuf); i ++) {
+                InsertInLine(copyBuf[i]);
+            }
             Refresh();
             dirty = true;
         }
