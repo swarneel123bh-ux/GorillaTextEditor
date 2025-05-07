@@ -29,10 +29,21 @@ int RunVisualMode(void) {
             break;
         }
     }
-    ClearHighlight(starty, startx, endy, endx);
+    ClearAllHighlight();
     Refresh();
     wmove(imscr, sy, sx);
     return SIGNAL_SWITCH_TO_NORMALMODE;
+}
+
+void ClearAllHighlight(void) {
+    for (int i = 0; i <= lines.lastIndex; i ++) {
+        for (int j = 0; j <= lines.arr[i]->len; j ++) {
+            mvwchgat(imscr, i, j, 1, A_NORMAL, NORMAL_TEXT, NULL);
+        }
+    }
+
+    wmove(imscr, sy, sx);
+    return;
 }
 
 // Clear highlight of piece of text given by (starty, startx) to (endy, endx)
@@ -240,7 +251,7 @@ void Cut(int starty, int startx, int endy, int endx) {
     for (int i = y2; i >= y1; i --) {
         if (i == y2) {
             for (int j = x2; j >= 0; j --) { bckspc(); }
-        } else if (y == y1) {
+        } else if (i == y1) {
             for (int j = lines.arr[y1]->len; j >= 0; j --) { bckspc(); }
         } else {
             for (int j = lines.arr[i]->len; j >= 0; j --) { bckspc(); }
