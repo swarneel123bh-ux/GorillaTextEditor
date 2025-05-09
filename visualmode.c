@@ -11,6 +11,7 @@ int RunVisualMode(void) {
     endy = starty;
     endx = startx;
     int lasty = sy, lastx = sx;
+    curs_set(0);
     while (currentMode == VISUALMODE) {
         lasty = endy;      // Update last position to previous end
         lastx = endx;
@@ -31,6 +32,7 @@ int RunVisualMode(void) {
     }
     ClearAllHighlight();
     Refresh();
+    curs_set(1);
     wmove(imscr, sy, sx);
     return SIGNAL_SWITCH_TO_NORMALMODE;
 }
@@ -82,7 +84,7 @@ void ClearHighlight(int starty, int startx, int endy, int endx) {
 
     for (int i = y1; i <= y2; i ++) {
         if (i == y1) {
-            for (int j = x1; j <= lines.arr[i]->len - 1; j ++) {
+            for (int j = x1; j <= lines.arr[i]->len; j ++) {
                 mvwchgat(imscr, i, j, 1, A_NORMAL, NORMAL_TEXT, NULL);
             }
         } else if (i == y2) {
@@ -90,7 +92,7 @@ void ClearHighlight(int starty, int startx, int endy, int endx) {
                 mvwchgat(imscr, i, j, 1, A_NORMAL, NORMAL_TEXT, NULL);
             }
         } else {
-            for (int j = 0; j <= lines.arr[i]->len - 1; j ++) {
+            for (int j = 0; j <= lines.arr[i]->len; j ++) {
                 mvwchgat(imscr, i, j, 1, A_NORMAL, NORMAL_TEXT, NULL);
             }
         }
@@ -135,7 +137,7 @@ void Highlight(int starty, int startx, int endy, int endx) {
 
     for (int i = y1; i <= y2; i ++) {
         if (i == y1) {
-            for (int j = x1; j <= lines.arr[i]->len - 1; j ++) {
+            for (int j = x1; j <= lines.arr[i]->len; j ++) {
                 mvwchgat(imscr, i, j, 1, A_NORMAL, HIGHLIGHTED_TEXT, NULL);
             }
         } else if (i == y2) {
@@ -143,7 +145,7 @@ void Highlight(int starty, int startx, int endy, int endx) {
                 mvwchgat(imscr, i, j, 1, A_NORMAL, HIGHLIGHTED_TEXT, NULL);
             }
         } else {
-            for (int j = 0; j <= lines.arr[i]->len - 1; j ++) {
+            for (int j = 0; j <= lines.arr[i]->len; j ++) {
                 mvwchgat(imscr, i, j, 1, A_NORMAL, HIGHLIGHTED_TEXT, NULL);
             }
         }
@@ -268,12 +270,12 @@ void Paste(void) {
     int i;
     for (i = 0; i <= cb.lastIndex - 1; i ++) {  // We are going to print the last line separately to make sure
     // We dont accidentally print out another empty line at the end 
-        for (int j = 0; j < cb.arr[i]->len - 1; j ++) {
+        for (int j = 0; j < cb.arr[i]->len; j ++) {
             InsertInLine(cb.arr[i]->buf[j]);
         }
         crlf();
     }
-    for (int j = 0; j < cb.arr[i]->len - 1; j ++) {
+    for (int j = 0; j < cb.arr[i]->len; j ++) {
         InsertInLine(cb.arr[i]->buf[j]);
     }
 
