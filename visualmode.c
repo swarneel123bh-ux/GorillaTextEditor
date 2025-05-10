@@ -37,6 +37,7 @@ int RunVisualMode(void) {
     return SIGNAL_SWITCH_TO_NORMALMODE;
 }
 
+// Unhighlight everything, used when changing modes
 void ClearAllHighlight(void) {
     for (int i = 0; i <= lines.lastIndex; i ++) {
         for (int j = 0; j <= lines.arr[i]->len; j ++) {
@@ -210,9 +211,10 @@ void Cut(int starty, int startx, int endy, int endx) {
     int y1, x1, y2, x2;
 
     // Find out starting and ending coordinates in proper manner
-    if (miny == starty) { y1 = starty; x1 = startx; y2 = endy; x2 = endx;
+    if (miny == starty) {
+        y1 = starty; x1 = startx; y2 = endy; x2 = endx;
     } else if (miny == endy) {
-        y1 = endy; x1 = endx; y2 = starty; x2 = startx;
+        y1 = endy; x1 = endx; y2 = starty; x2 = startx; 
     } else {
         y1 = starty; x1 = startx; y2 = endy; x2 = endx;
     }
@@ -240,7 +242,7 @@ void Cut(int starty, int startx, int endy, int endx) {
             cb.arr[i]->len += strlen(cb.arr[i]->buf);
         } else if (i == cb.lastIndex) {
             memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, strlen(lines.arr[y1 + i]->buf));
-            memset(cb.arr[i]->buf + x2 + 1, 0, strlen(cb.arr[i]->buf + x2 + 0));
+            memset(cb.arr[i]->buf + x2 + 1, 0, strlen(cb.arr[i]->buf + x2 + 1));
             cb.arr[i]->len += strlen(cb.arr[i]->buf);
         } else {
             memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, strlen(lines.arr[y1 + i]->buf));
@@ -249,14 +251,14 @@ void Cut(int starty, int startx, int endy, int endx) {
     }
 
     // Now delete the characters to be cut from the screen and memory
-    wmove(imscr, y2, x2);
+    wmove(imscr, y2, x2 + 1);
     for (int i = y2; i >= y1; i --) {
         if (i == y2) {
-            for (int j = x2; j >= 0; j --) { bckspc(); }
+            for (int j = x2 + 1; j >= 0; j --) { bckspc(); }
         } else if (i == y1) {
-            for (int j = lines.arr[y1]->len; j >= 0; j --) { bckspc(); }
+            for (int j = lines.arr[y1]->len + 1; j >= 0; j --) { bckspc(); }
         } else {
-            for (int j = lines.arr[i]->len; j >= 0; j --) { bckspc(); }
+            for (int j = lines.arr[i]->len + 1; j >= 0; j --) { bckspc(); }
         }
     }
 
@@ -264,9 +266,7 @@ void Cut(int starty, int startx, int endy, int endx) {
 }
 
 void Paste(void) {
-    
     // Paste all the lines in clipboard to the current cursor position
-
     int i;
     for (i = 0; i <= cb.lastIndex - 1; i ++) {  // We are going to print the last line separately to make sure
     // We dont accidentally print out another empty line at the end 
@@ -275,10 +275,10 @@ void Paste(void) {
         }
         crlf();
     }
+    // No need to insert another line after the last one
     for (int j = 0; j < cb.arr[i]->len; j ++) {
         InsertInLine(cb.arr[i]->buf[j]);
     }
-
 
     return;
 }
