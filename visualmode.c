@@ -167,6 +167,12 @@ void Copy(int starty, int startx, int endy, int endx) {
         x1 = startx; 
         y2 = endy;
         x2 = endx;
+
+        // Need to check here if y1 == y2
+        if (y1 == y2) {
+            x1 = min(startx, endx);
+            x2 = max(startx, endx);
+        }
     } else if (miny == endy) {
         y1 = endy;
         x1 = endx;
