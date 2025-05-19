@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <ncurses.h>
+#include <ncurses/ncurses.h>
 #include "commandmode.h"
 #include "general.h"
 #include "inputmode.h"
@@ -17,10 +17,8 @@ void Refresh(void) {
 
 // Wait for a given number of seconds
 void Sleep(double seconds){
-    unsigned int sec = (unsigned int)(seconds); \
-    unsigned int usec = (unsigned int)((seconds - sec) * 1000000); \
-    sleep(sec); \
-    usleep(usec); \
+    unsigned int sec = (unsigned int)(seconds);
+    sleep(sec);
     return;
 }
 
@@ -227,7 +225,7 @@ int ProcessKeyhit(void) {
         // Insert line under current line and start writing from beginning
         case o: { 
             if (currentMode == NORMALMODE) {
-                if (sy > 0) {
+                if (sy >= 0) {
                     InsertNewLine();
                     sy ++;
                     my ++;

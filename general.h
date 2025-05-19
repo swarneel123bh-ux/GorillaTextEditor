@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
-#include <ncurses.h>
+#include <ncurses/ncurses.h>
 
 // Constants
 #define MAXBUFLEN 1000  // Maximum size any buffer can have, redefine this constant when required

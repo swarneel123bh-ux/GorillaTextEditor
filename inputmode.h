@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
-#include <ncurses.h>
+#include <ncurses/ncurses.h>
 #include "general.h"
 
 // Macros for shortcuts

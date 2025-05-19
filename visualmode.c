@@ -162,11 +162,19 @@ void Copy(int starty, int startx, int endy, int endx) {
     int y1, x1, y2, x2;
 
     // Find out starting and ending coordinates in proper manner
-    if (miny == starty) { y1 = starty; x1 = startx; y2 = endy; x2 = endx;
+    if (miny == starty) {
+        y1 = starty;
+        x1 = startx; 
+        y2 = endy;
+        x2 = endx;
     } else if (miny == endy) {
-        y1 = endy; x1 = endx; y2 = starty; x2 = startx;
-    } else {
-        y1 = starty; x1 = startx; y2 = endy; x2 = endx;
+        y1 = endy;
+        x1 = endx;
+        y2 = starty;
+        x2 = startx;
+    } else {    // miny == y1 == y2
+        // No need to write anything here because the y coords are same so 
+        // First iff statement will get triggered
     }
 
     // Clear the clipboard of the old data
@@ -181,21 +189,19 @@ void Copy(int starty, int startx, int endy, int endx) {
     }
     cb.arr = temp;
     // Set up empty memory to get data from the original line array
-    for (int i = 0; i<= cb.lastIndex; i ++) {
+    for (int i = 0; i <= cb.lastIndex; i ++) {
         cb.arr[i] = Line();
     }
 
-    // Copy the lines over properly
-    for (int i = 0; i <= cb.lastIndex; i ++) {
-        if (i == 0) {
-            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf + x1, strlen(lines.arr[y1 + i]->buf + x1));
+    for (int i = 0; i <= cb.lastIndex; i ++){
+        if (i == 0){
+            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf + x1, lines.arr[y1 + i]->len - x1 + 1);
             cb.arr[i]->len += strlen(cb.arr[i]->buf);
         } else if (i == cb.lastIndex) {
-            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, strlen(lines.arr[y1 + i]->buf));
-            memset(cb.arr[i]->buf + x2 + 1, 0, strlen(cb.arr[i]->buf + x2 + 0));
+            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, x2 + 1);
             cb.arr[i]->len += strlen(cb.arr[i]->buf);
         } else {
-            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, strlen(lines.arr[y1 + i]->buf));
+            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, lines.arr[y1 + i]->len);
             cb.arr[i]->len += strlen(cb.arr[i]->buf);
         }
     }
