@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <ncurses/ncurses.h>
+#include <ncurses.h>
 #include "commandmode.h"
 #include "inputmode.h"
 #include "visualmode.h"
