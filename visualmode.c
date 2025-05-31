@@ -5,6 +5,7 @@
 
 // Do all the stuff, including highlighting, copy/cut to clipboard (NEED TO DEFINE CLIPBOARD)
 int RunVisualMode(void) {
+    visualmodeactve = 1;
     int starty, startx, endy, endx;
     starty = sy;
     startx = sx;
@@ -34,6 +35,7 @@ int RunVisualMode(void) {
     Refresh();
     curs_set(1);
     wmove(imscr, sy, sx);
+    visualmodeactve = 0;
     return SIGNAL_SWITCH_TO_NORMALMODE;
 }
 
@@ -52,26 +54,22 @@ void ClearAllHighlight(void) {
 // Clear highlight of piece of text given by (starty, startx) to (endy, endx)
 // NEED TO FIND TOPLEFT AND BOTTOMRIGHT OF EACH HIGhLIGHT SEGMENT
 void ClearHighlight(int starty, int startx, int endy, int endx) {
-    // Find out the y-coordinates for the start of the highlighting
-    int miny = min(starty, endy);
-    // Now find the x coord for the miny coord and x coord for maxy coord as well
     int y1, x1, y2, x2;
-
-    if (miny == starty) {
-        y1 = starty;
-        x1 = startx;
-        y2 = endy;
-        x2 = endx;
-    } else if (miny == endy) {
+    if (endy < starty) {
         y1 = endy;
         x1 = endx;
         y2 = starty;
         x2 = startx;
-    } else {
+    } else if (endy > starty) {
         y1 = starty;
         x1 = startx;
         y2 = endy;
         x2 = endx;
+    } else { // y1 == y2
+        y1 = starty;
+        x1 = min(startx, endx);
+        y2 = endy;
+        x2 = max(startx, endx);
     }
 
     if (y1 == y2) {
@@ -85,7 +83,7 @@ void ClearHighlight(int starty, int startx, int endy, int endx) {
 
     for (int i = y1; i <= y2; i ++) {
         if (i == y1) {
-            for (int j = x1; j <= lines.arr[i]->len; j ++) {
+            for (int j = x1; j <= lines.arr[i]->len - 1; j ++) {
                 mvwchgat(imscr, i, j, 1, A_NORMAL, NORMAL_TEXT, NULL);
             }
         } else if (i == y2) {
@@ -93,7 +91,7 @@ void ClearHighlight(int starty, int startx, int endy, int endx) {
                 mvwchgat(imscr, i, j, 1, A_NORMAL, NORMAL_TEXT, NULL);
             }
         } else {
-            for (int j = 0; j <= lines.arr[i]->len; j ++) {
+            for (int j = 0; j <= lines.arr[i]->len - 1; j ++) {
                 mvwchgat(imscr, i, j, 1, A_NORMAL, NORMAL_TEXT, NULL);
             }
         }
@@ -105,27 +103,24 @@ void ClearHighlight(int starty, int startx, int endy, int endx) {
 // Highlight a piece of text given by (starty, startx) to (endy, endx)
 // NEED TO FIND TOPLEFT AND BOTTOMRIGHT OF EACH HIGhLIGHT SEGMENT
 void Highlight(int starty, int startx, int endy, int endx) {
-    // Find out the y-coordinates for the start of the highlighting
-    int miny = min(starty, endy);
-    // Now find the x coord for the miny coord and x coord for maxy coord as well
     int y1, x1, y2, x2;
-
-    if (miny == starty) {
-        y1 = starty;
-        x1 = startx;
-        y2 = endy;
-        x2 = endx;
-    } else if (miny == endy) {
+    if (endy < starty) {
         y1 = endy;
         x1 = endx;
         y2 = starty;
         x2 = startx;
-    } else {
+    } else if (endy > starty) {
         y1 = starty;
         x1 = startx;
         y2 = endy;
         x2 = endx;
+    } else { // y1 == y2
+        y1 = starty;
+        x1 = min(startx, endx);
+        y2 = endy;
+        x2 = max(startx, endx);
     }
+
 
     if (y1 == y2) {
         x1 = min(startx, endx);
@@ -138,7 +133,7 @@ void Highlight(int starty, int startx, int endy, int endx) {
 
     for (int i = y1; i <= y2; i ++) {
         if (i == y1) {
-            for (int j = x1; j <= lines.arr[i]->len; j ++) {
+            for (int j = x1; j <= lines.arr[i]->len - 1; j ++) {
                 mvwchgat(imscr, i, j, 1, A_NORMAL, HIGHLIGHTED_TEXT, NULL);
             }
         } else if (i == y2) {
@@ -146,7 +141,7 @@ void Highlight(int starty, int startx, int endy, int endx) {
                 mvwchgat(imscr, i, j, 1, A_NORMAL, HIGHLIGHTED_TEXT, NULL);
             }
         } else {
-            for (int j = 0; j <= lines.arr[i]->len; j ++) {
+            for (int j = 0; j <= lines.arr[i]->len - 1; j ++) {
                 mvwchgat(imscr, i, j, 1, A_NORMAL, HIGHLIGHTED_TEXT, NULL);
             }
         }
@@ -156,32 +151,88 @@ void Highlight(int starty, int startx, int endy, int endx) {
 
 // Select a piece of text and copy to clipboard
 void Copy(int starty, int startx, int endy, int endx) {
-    // IDYK if i need to free the entire clipboard or not, because since im reallocating, freein the clipboard
-    // will cause null pointer derefencing issues
-    int miny = min(starty, endy);
+
+    /*
+    FIGURE OUT HOW TO GET THE TOPLEFT AND BOTTOMRIGHT COORDS
+    */    
+
+
     int y1, x1, y2, x2;
-
-    // Find out starting and ending coordinates in proper manner
-    if (miny == starty) {
-        y1 = starty;
-        x1 = startx; 
-        y2 = endy;
-        x2 = endx;
-
-        // Need to check here if y1 == y2
-        if (y1 == y2) {
-            x1 = min(startx, endx);
-            x2 = max(startx, endx);
-        }
-    } else if (miny == endy) {
+    if (endy < starty) {
         y1 = endy;
         x1 = endx;
         y2 = starty;
         x2 = startx;
-    } else {    // miny == y1 == y2
-        // No need to write anything here because the y coords are same so 
-        // First iff statement will get triggered
+    } else if (endy > starty) {
+        y1 = starty;
+        x1 = startx;
+        y2 = endy;
+        x2 = endx;
+    } else { // y1 == y2
+        y1 = starty;
+        x1 = min(startx, endx);
+        y2 = endy;
+        x2 = max(startx, endx);
     }
+
+
+    // Clear the clipboard of the old data
+    // If we clear only when we copy, then we can paste multiple times
+    // Reallocate memory for cb
+    cb.lastIndex = y2 - y1;
+    line** temp = (line**) realloc(cb.arr, sizeof(line*) * (cb.lastIndex + 1));
+    if (!temp) {
+        ExitProgram(ERR_MEM_REALLOC_FAIL);
+        return;
+
+    }
+    cb.arr = temp;
+    // Set up empty memory to get data from the original line array
+    for (int i = 0; i <= cb.lastIndex; i ++) {
+        cb.arr[i] = Line();
+    }
+
+    for (int i = 0; i <= cb.lastIndex; i ++){
+        if (i == 0) {
+            if (y1 == y2) { memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf + x1, x2 - x1 + 1); }
+            else { memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf + x1, lines.arr[y1 + i]->len - x1 + 1); }
+            cb.arr[i]->len += strlen(cb.arr[i]->buf);
+        } else if (i == cb.lastIndex) {
+            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, x2 + 1);
+            cb.arr[i]->len += strlen(cb.arr[i]->buf);
+        } else {
+            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, lines.arr[y1 + i]->len);
+            cb.arr[i]->len += strlen(cb.arr[i]->buf);
+        }
+    }
+
+    return;
+}
+
+// Select a piece of text, copy to clipboard and delete from screen and memory
+void Cut(int starty, int startx, int endy, int endx) {
+    /*
+    FIGURE OUT HOW TO GET THE TOPLEFT AND BOTTOMRIGHT COORDS
+    */    
+
+    int y1, x1, y2, x2;
+    if (endy < starty) {
+        y1 = endy;
+        x1 = endx;
+        y2 = starty;
+        x2 = startx;
+    } else if (endy > starty) {
+        y1 = starty;
+        x1 = startx;
+        y2 = endy;
+        x2 = endx;
+    } else { // y1 == y2
+        y1 = starty;
+        x1 = min(startx, endx);
+        y2 = endy;
+        x2 = max(startx, endx);
+    }
+
 
     // Clear the clipboard of the old data
     // If we clear only when we copy, then we can paste multiple times
@@ -201,7 +252,8 @@ void Copy(int starty, int startx, int endy, int endx) {
 
     for (int i = 0; i <= cb.lastIndex; i ++){
         if (i == 0){
-            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf + x1, lines.arr[y1 + i]->len - x1 + 1);
+            if (y1 == y2) { memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf + x1, x2 - x1 + 1); }
+            else { memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf + x1, lines.arr[y1 + i]->len - x1 + 1); }
             cb.arr[i]->len += strlen(cb.arr[i]->buf);
         } else if (i == cb.lastIndex) {
             memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, x2 + 1);
@@ -212,66 +264,52 @@ void Copy(int starty, int startx, int endy, int endx) {
         }
     }
 
-    return;
-}
-
-// Select a piece of text, copy to clipboard and delete from screen and memory
-void Cut(int starty, int startx, int endy, int endx) {
-    // IDYK if i need to free the entire clipboard or not, because since im reallocating, freein the clipboard
-    // will cause null pointer derefencing issues
-    int miny = min(starty, endy);
-    int y1, x1, y2, x2;
-
-    // Find out starting and ending coordinates in proper manner
-    if (miny == starty) {
-        y1 = starty; x1 = startx; y2 = endy; x2 = endx;
-    } else if (miny == endy) {
-        y1 = endy; x1 = endx; y2 = starty; x2 = startx; 
-    } else {
-        y1 = starty; x1 = startx; y2 = endy; x2 = endx;
-    }
-
-    // Clear the clipboard of the old data
-    // If we clear only when we copy, then we can paste multiple times
-    // Reallocate memory for cb
-    cb.lastIndex = y2 - y1;
-    line** temp = (line**) realloc(cb.arr, sizeof(line*) * (cb.lastIndex + 1));
-    if (!temp) {
-        ExitProgram(ERR_MEM_REALLOC_FAIL);
-        return;
-
-    }
-    cb.arr = temp;
-    // Set up empty memory to get data from the original line array
-    for (int i = 0; i<= cb.lastIndex; i ++) {
-        cb.arr[i] = Line();
-    }
-
-    // Copy the lines over properly
-    for (int i = 0; i <= cb.lastIndex; i ++) {
-        if (i == 0) {
-            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf + x1, strlen(lines.arr[y1 + i]->buf + x1));
-            cb.arr[i]->len += strlen(cb.arr[i]->buf);
-        } else if (i == cb.lastIndex) {
-            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, strlen(lines.arr[y1 + i]->buf));
-            memset(cb.arr[i]->buf + x2 + 1, 0, strlen(cb.arr[i]->buf + x2 + 1));
-            cb.arr[i]->len += strlen(cb.arr[i]->buf);
-        } else {
-            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, strlen(lines.arr[y1 + i]->buf));
-            cb.arr[i]->len += strlen(cb.arr[i]->buf);
-        }
-    }
-
     // Now delete the characters to be cut from the screen and memory
-    wmove(imscr, y2, x2 + 1);
-    for (int i = y2; i >= y1; i --) {
-        if (i == y2) {
-            for (int j = x2 + 1; j >= 0; j --) { bckspc(); }
-        } else if (i == y1) {
-            for (int j = lines.arr[y1]->len + 1; j >= 0; j --) { bckspc(); }
+    // Decide the cases, based on where to go
+    // Basic idea is we travel from bottom right corner of selection to the top left of the selection
+
+    /*
+    1. If y1 == y2, x2 < lines.arr[y1]->len :: Move to (y2, x2 + 1)
+    2. If y1 == y2, x2 == lines.arr[y1]->len :: 
+        2.1. If y2 < lines.lastIndex :: move to (y2 + 1, 0)
+        2.2. If y2 == lines.lastIndex :: move to (y2, x2 + 1)
+    3. Case 3 : y2 > y1 :: Same as subcases 2.1 and 2.2
+    */
+
+    if (y1 == y2) {
+        if (x2 == lines.arr[y1]->len - 1) {
+            if (y2 == lines.lastIndex) {
+                wmove(imscr, y2, x2 + 1);
+                Refresh();
+            } else {
+                wmove(imscr, y2 + 1, 0);
+                Refresh();
+            }
         } else {
-            for (int j = lines.arr[i]->len + 1; j >= 0; j --) { bckspc(); }
+            wmove(imscr, y2, x2 + 1);
+            Refresh();
         }
+        // For this case, we need exactly as many backspaces as there are characters selected, no matter where we start
+        // Which is x2 - x1 + 1 in number
+        for (int i = 0; i < x2 - x1 + 1; i++) { bckspc(); }
+
+    } else {
+        if (y2 == lines.lastIndex) {
+            wmove(imscr, y2, x2 + 1);
+            Refresh();
+        } else {
+            wmove(imscr, y2 + 1, 0);
+            Refresh();
+        }
+
+        // For this subcase, we need as many backspaces as there are total number of characters selected
+        // Total number of characters selected is can be found out from the clipboard
+        int nbckspcs = 0;
+        for (int i = 0; i <= cb.lastIndex; i ++) {
+            nbckspcs += cb.arr[i]->len;
+        }
+        // Now delete the characters with the backspace hits
+        for (int i = 0; i <= nbckspcs; i ++) { bckspc(); }
     }
 
     return;

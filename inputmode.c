@@ -1,4 +1,5 @@
 #include "inputmode.h"
+#include "visualmode.h"
 
 // After loading from memory, simply prints out to imscr
 void PrintLoadedFile(void) {
@@ -23,17 +24,16 @@ void cursor_up(void) {
     else if (sy == 0) {
         if (my > 0) {
             wscrl(imscr, -1);
-            mvwprintw(imscr, sy, 0, "%s",
-            lines.arr[my]->buf);
+            mvwprintw(imscr, sy, 0, "%s", lines.arr[my]->buf);
             my --;
-            sx = min(lines.arr[my]->len, sx);
+            sx = min((visualmodeactve)? lines.arr[my]->len - 1 : lines.arr[my]->len, sx);
             mx = sx;
         } else { mx = 0; sx = 0; }
     }
     else {
         sy --;
         my --;
-        sx = min(lines.arr[my]->len, sx);
+        sx = min((visualmodeactve)? lines.arr[my]->len - 1 : lines.arr[my]->len, sx);
         mx = sx;
     }
     wmove(imscr, sy, sx);
@@ -50,12 +50,13 @@ void cursor_down(void) {
     } else if (sy == imscrnlines - 1) {
         wscrl(imscr, 1);
         my ++;
-        mvwprintw(imscr, sy, 0, "%s", lines.arr[my]->buf); sx = min(sx, lines.arr[my]->len); 
+        mvwprintw(imscr, sy, 0, "%s", lines.arr[my]->buf);
+        sx = min(sx, (visualmodeactve)? lines.arr[my]->len - 1 : lines.arr[my]->len); 
         mx = sx;
     } else {
         my ++;
         sy ++;
-        sx = min(sx, lines.arr[my]->len);
+        sx = min((visualmodeactve)? lines.arr[my]->len - 1 : lines.arr[my]->len, sx);
         mx = sx;
     }
     wmove(imscr, sy, sx);
@@ -67,13 +68,13 @@ void cursor_left(void) {
     else if (sy > 0) {
         sy --;
         my --;
-        sx = lines.arr[my]->len;
+        sx = (visualmodeactve)? lines.arr[my]->len - 1 : lines.arr[my]->len;
         mx = sx;
     } else if (my > 0) {
         wscrl(imscr, -1);
         my --;
         mvwprintw(imscr, sy, 0, "%s", lines.arr[my]->buf);
-        sx = lines.arr[my]->len;
+        sx = (visualmodeactve)? lines.arr[my]->len - 1 : lines.arr[my]->len;
         mx = sx;
     } else { }
     wmove(imscr, sy, sx);
@@ -82,18 +83,33 @@ void cursor_left(void) {
 // Normal RIGHT arrow key effect
 void cursor_right(void) {
     // RIGHT ARROW KEY FAULTY, SEGFAULT WHEN AT END OF FILE
-    if (sx < lines.arr[my]->len) { sx ++; mx = sx; }
-    else if ((sy < imscrnlines - 1) && (my < lines.lastIndex)) {
-        sy ++;
-        my ++;
-        sx = 0;
-        mx = sx;
-    } else if (my < lines.lastIndex) {
-        wscrl(imscr, 1);
-        my ++;
-        mvwprintw(imscr, sy, 0, "%s", lines.arr[my]->buf);
-        sx = 0; mx = 0;
-    } else {}
+    if (!visualmodeactve) {
+        if (sx < lines.arr[my]->len) { sx ++; mx = sx; }
+        else if ((sy < imscrnlines - 1) && (my < lines.lastIndex)) {
+            sy ++;
+            my ++;
+            sx = 0;
+            mx = sx;
+        } else if (my < lines.lastIndex) {
+            wscrl(imscr, 1);
+            my ++;
+            mvwprintw(imscr, sy, 0, "%s", lines.arr[my]->buf);
+            sx = 0; mx = 0;
+        } else {}
+    } else {
+        if (sx < lines.arr[my]->len - 1) { sx ++; mx = sx; }
+        else if ((sy < imscrnlines - 1) && (my < lines.lastIndex)) {
+            sy ++;
+            my ++;
+            sx = 0;
+            mx = sx;
+        } else if (my < lines.lastIndex) {
+            wscrl(imscr, 1);
+            my ++;
+            mvwprintw(imscr, sy, 0, "%s", lines.arr[my]->buf);
+            sx = 0; mx = 0;
+        } else {}
+    }
     wmove(imscr, sy, sx);
     return;
 }
@@ -142,16 +158,21 @@ void bckspc(void) {
             sy --;
             my --;
             sx = lines.arr[my]->len;
+            int lastLineEndx = sx;
             mx = sx;
             wmove(imscr, sy, sx);
             // Paste the copied content to the upper line and screen
             for (int i = 0; i < strlen(copyBuf); i ++) {
                 InsertInLine(copyBuf[i]);
             }
+            sx = lastLineEndx;
+            mx = sx;
+            wmove(imscr, sy, sx);
             Refresh();
             dirty = true;
         } else if (my > 0) {
             wscrl(imscr, -1);
+            int lastLineEndx = lines.arr[my - 1]->len;
             // Copy all the stuff to the right of the cursor
             char copyBuf[1000]; memset(copyBuf, 0, sizeof(char) * 1000);
             memcpy(copyBuf, (lines.arr[my]->buf), strlen(lines.arr[my]->buf));
@@ -159,16 +180,19 @@ void bckspc(void) {
             SHIFTLEFT(lines.arr, my, lines.lastIndex);
             lines.lastIndex --;
             my --;
-            sx = lines.arr[my]->len - 1;
+            sx = lines.arr[my]->len;
             mx = sx;
             wmove(imscr, sy, sx);
             // Paste the copied content to the upper line and screen
             for (int i = 0; i < strlen(copyBuf); i ++) {
                 InsertInLine(copyBuf[i]);
             }
+            sx = lastLineEndx;
+            mx = sx;
+            wmove(imscr, sy, sx);
             Refresh();
             dirty = true;
-        }
+        } else {}
     }
     return;
 }
