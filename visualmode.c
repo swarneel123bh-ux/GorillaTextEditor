@@ -233,6 +233,11 @@ void Cut(int starty, int startx, int endy, int endx) {
         x2 = max(startx, endx);
     }
 
+    FILE* f = fopen("Coords.txt", "w");
+    if (f) {
+        fprintf(f, "(y1, x1) = (%d, %d)\n(y2, x2) = (%d, %d)\n", y1, x1, y2, x2);
+        fclose(f);
+    }
 
     // Clear the clipboard of the old data
     // If we clear only when we copy, then we can paste multiple times
@@ -276,19 +281,20 @@ void Cut(int starty, int startx, int endy, int endx) {
     3. Case 3 : y2 > y1 :: Same as subcases 2.1 and 2.2
     */
 
-    // Get to the last character
     if (x2 == lines.arr[y2]->len - 1) {
         if (y2 == lines.lastIndex) {
-            wmove(imscr, lines.lastIndex, lines.arr[lines.lastIndex]->len);
-            Refresh();
+            sy = y2;
+            sx = x2 + 1;
         } else {
-            wmove(imscr, y2 + 1, 0);
-            Refresh();
+            sy = y2 + 1;
+            sx = 0;
         }
     } else {
-        wmove(imscr, y2, x2 + 1);
-        Refresh();
+        sy = y2;
+        sx = x2 + 1;
     }
+
+    wmove(imscr, sy, sx);
 
     // Find the number of characters to be deleted
     int nbckspcs = 0;
@@ -297,10 +303,17 @@ void Cut(int starty, int startx, int endy, int endx) {
     }
 
     // Make as many backspace calls as calculated
-    for (int i = 0; i <= nbckspcs; i ++) {
-        bckspc();
+    // Log all the coords where a bckspc was called
+    f = fopen("Coords.txt", "w");
+    if (f) {
+        for (int i = 0; i <= nbckspcs; i ++) {
+            fprintf(f, "bckspc :: (y, x) = (%d, %d)\n", sy, sx);
+            bckspc();
+        }
+        fclose(f);
     }
 
+    Refresh();
     return;
 }
 
