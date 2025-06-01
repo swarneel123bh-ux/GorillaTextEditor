@@ -276,40 +276,29 @@ void Cut(int starty, int startx, int endy, int endx) {
     3. Case 3 : y2 > y1 :: Same as subcases 2.1 and 2.2
     */
 
-    if (y1 == y2) {
-        if (x2 == lines.arr[y1]->len - 1) {
-            if (y2 == lines.lastIndex) {
-                wmove(imscr, y2, x2 + 1);
-                Refresh();
-            } else {
-                wmove(imscr, y2 + 1, 0);
-                Refresh();
-            }
-        } else {
-            wmove(imscr, y2, x2 + 1);
-            Refresh();
-        }
-        // For this case, we need exactly as many backspaces as there are characters selected, no matter where we start
-        // Which is x2 - x1 + 1 in number
-        for (int i = 0; i < x2 - x1 + 1; i++) { bckspc(); }
-
-    } else {
+    // Get to the last character
+    if (x2 == lines.arr[y2]->len - 1) {
         if (y2 == lines.lastIndex) {
-            wmove(imscr, y2, x2 + 1);
+            wmove(imscr, lines.lastIndex, lines.arr[lines.lastIndex]->len);
             Refresh();
         } else {
             wmove(imscr, y2 + 1, 0);
             Refresh();
         }
+    } else {
+        wmove(imscr, y2, x2 + 1);
+        Refresh();
+    }
 
-        // For this subcase, we need as many backspaces as there are total number of characters selected
-        // Total number of characters selected is can be found out from the clipboard
-        int nbckspcs = 0;
-        for (int i = 0; i <= cb.lastIndex; i ++) {
-            nbckspcs += cb.arr[i]->len;
-        }
-        // Now delete the characters with the backspace hits
-        for (int i = 0; i <= nbckspcs; i ++) { bckspc(); }
+    // Find the number of characters to be deleted
+    int nbckspcs = 0;
+    for (int i = 0; i <= cb.lastIndex; i ++) {
+        nbckspcs += (cb.arr[i]->len - 1);
+    }
+
+    // Make as many backspace calls as calculated
+    for (int i = 0; i <= nbckspcs; i ++) {
+        bckspc();
     }
 
     return;
