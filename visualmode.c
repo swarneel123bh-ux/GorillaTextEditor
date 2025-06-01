@@ -193,15 +193,15 @@ void Copy(int starty, int startx, int endy, int endx) {
     }
 
     for (int i = 0; i <= cb.lastIndex; i ++){
-        if (i == 0) {
+        if (i == 0){
             if (y1 == y2) { memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf + x1, x2 - x1 + 1); }
-            else { memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf + x1, lines.arr[y1 + i]->len - x1 + 1); }
+            else { memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf + x1, lines.arr[y1 + i]->len - x1); }
             cb.arr[i]->len += strlen(cb.arr[i]->buf);
         } else if (i == cb.lastIndex) {
             memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, x2 + 1);
             cb.arr[i]->len += strlen(cb.arr[i]->buf);
         } else {
-            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, lines.arr[y1 + i]->len);
+            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, lines.arr[y1 + i]->len - 1);
             cb.arr[i]->len += strlen(cb.arr[i]->buf);
         }
     }
@@ -258,13 +258,13 @@ void Cut(int starty, int startx, int endy, int endx) {
     for (int i = 0; i <= cb.lastIndex; i ++){
         if (i == 0){
             if (y1 == y2) { memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf + x1, x2 - x1 + 1); }
-            else { memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf + x1, lines.arr[y1 + i]->len - x1 + 1); }
+            else { memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf + x1, lines.arr[y1 + i]->len - x1); }
             cb.arr[i]->len += strlen(cb.arr[i]->buf);
         } else if (i == cb.lastIndex) {
             memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, x2 + 1);
             cb.arr[i]->len += strlen(cb.arr[i]->buf);
         } else {
-            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, lines.arr[y1 + i]->len);
+            memcpy(cb.arr[i]->buf, lines.arr[y1 + i]->buf, lines.arr[y1 + i]->len - 1);
             cb.arr[i]->len += strlen(cb.arr[i]->buf);
         }
     }
@@ -282,16 +282,23 @@ void Cut(int starty, int startx, int endy, int endx) {
     */
 
     if (x2 == lines.arr[y2]->len - 1) {
+        // memory coords MAY OR MAY NOT BE THE SAME AS SCREEN COORDS
         if (y2 == lines.lastIndex) {
             sy = y2;
+            my = sy;
             sx = x2 + 1;
+            mx = sx;
         } else {
             sy = y2 + 1;
+            my = sy;
             sx = 0;
+            mx = sx;
         }
     } else {
         sy = y2;
+        my = sy;
         sx = x2 + 1;
+        mx = sx;
     }
 
     wmove(imscr, sy, sx);
@@ -299,7 +306,7 @@ void Cut(int starty, int startx, int endy, int endx) {
     // Find the number of characters to be deleted
     int nbckspcs = 0;
     for (int i = 0; i <= cb.lastIndex; i ++) {
-        nbckspcs += (cb.arr[i]->len - 1);
+        nbckspcs += (cb.arr[i]->len);
     }
 
     // Make as many backspace calls as calculated
