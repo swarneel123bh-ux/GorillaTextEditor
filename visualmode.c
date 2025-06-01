@@ -151,12 +151,6 @@ void Highlight(int starty, int startx, int endy, int endx) {
 
 // Select a piece of text and copy to clipboard
 void Copy(int starty, int startx, int endy, int endx) {
-
-    /*
-    FIGURE OUT HOW TO GET THE TOPLEFT AND BOTTOMRIGHT COORDS
-    */    
-
-
     int y1, x1, y2, x2;
     if (endy < starty) {
         y1 = endy;
@@ -211,10 +205,6 @@ void Copy(int starty, int startx, int endy, int endx) {
 
 // Select a piece of text, copy to clipboard and delete from screen and memory
 void Cut(int starty, int startx, int endy, int endx) {
-    /*
-    FIGURE OUT HOW TO GET THE TOPLEFT AND BOTTOMRIGHT COORDS
-    */    
-
     int y1, x1, y2, x2;
     if (endy < starty) {
         y1 = endy;
@@ -233,12 +223,6 @@ void Cut(int starty, int startx, int endy, int endx) {
         x2 = max(startx, endx);
     }
 
-    FILE* f = fopen("Coords.txt", "w");
-    if (f) {
-        fprintf(f, "(y1, x1) = (%d, %d)\n(y2, x2) = (%d, %d)\n", y1, x1, y2, x2);
-        fclose(f);
-    }
-
     // Clear the clipboard of the old data
     // If we clear only when we copy, then we can paste multiple times
     // Reallocate memory for cb
@@ -250,7 +234,6 @@ void Cut(int starty, int startx, int endy, int endx) {
 
     }
     cb.arr = temp;
-    // Set up empty memory to get data from the original line array
     for (int i = 0; i <= cb.lastIndex; i ++) {
         cb.arr[i] = Line();
     }
@@ -268,18 +251,6 @@ void Cut(int starty, int startx, int endy, int endx) {
             cb.arr[i]->len += strlen(cb.arr[i]->buf);
         }
     }
-
-    // Now delete the characters to be cut from the screen and memory
-    // Decide the cases, based on where to go
-    // Basic idea is we travel from bottom right corner of selection to the top left of the selection
-
-    /*
-    1. If y1 == y2, x2 < lines.arr[y1]->len :: Move to (y2, x2 + 1)
-    2. If y1 == y2, x2 == lines.arr[y1]->len :: 
-        2.1. If y2 < lines.lastIndex :: move to (y2 + 1, 0)
-        2.2. If y2 == lines.lastIndex :: move to (y2, x2 + 1)
-    3. Case 3 : y2 > y1 :: Same as subcases 2.1 and 2.2
-    */
 
     if (x2 == lines.arr[y2]->len - 1) {
         // memory coords MAY OR MAY NOT BE THE SAME AS SCREEN COORDS
@@ -309,18 +280,10 @@ void Cut(int starty, int startx, int endy, int endx) {
         nbckspcs += (cb.arr[i]->len);
     }
 
-    // Make as many backspace calls as calculated
-    // Log all the coords where a bckspc was called
-    f = fopen("Coords.txt", "w");
-    if (f) {
-        for (int i = 0; i <= nbckspcs; i ++) {
-            fprintf(f, "bckspc :: (y, x) = (%d, %d)\n", sy, sx);
-            bckspc();
-        }
-        fclose(f);
+    for (int i = 0; i < ((y1 == y2)? nbckspcs : nbckspcs + 1); i ++) {
+        bckspc();
     }
 
-    Refresh();
     return;
 }
 

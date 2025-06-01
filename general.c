@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ncurses.h>
+#include <time.h>
+#include <math.h>
 #include "commandmode.h"
 #include "general.h"
 #include "inputmode.h"
@@ -16,10 +18,17 @@ void Refresh(void) {
 }
 
 // Wait for a given number of seconds
-void Sleep(double seconds){
-    unsigned int sec = (unsigned int)(seconds);
-    sleep(sec);
-    return;
+void Sleep(double seconds) {
+    if (seconds <= 0) return;
+
+    struct timespec req;
+    req.tv_sec = (time_t)seconds;                        // Whole seconds
+    req.tv_nsec = (long)((seconds - req.tv_sec) * 1e9);  // Fractional seconds in nanoseconds
+
+    while (nanosleep(&req, &req) == -1) {
+        // Interrupted by a signal, retry with remaining time
+        continue;
+    }
 }
 
 // Save current line arr status to file in text format
