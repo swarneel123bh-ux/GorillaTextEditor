@@ -1,7 +1,6 @@
-#include "visualmode.h"
-#include "general.h"
-#include "commandmode.h"
-#include "inputmode.h"
+#include "include/visualmode.h"
+#include "include/general.h"
+#include "include/inputmode.h"
 
 // Do all the stuff, including highlighting, copy/cut to clipboard (NEED TO DEFINE CLIPBOARD)
 int RunVisualMode(void) {

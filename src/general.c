@@ -4,11 +4,9 @@
 #include <stdbool.h>
 #include <ncurses.h>
 #include <time.h>
-#include <math.h>
-#include "commandmode.h"
-#include "general.h"
-#include "inputmode.h"
-#include "visualmode.h"
+#include "include/general.h"
+#include "include/inputmode.h"
+#include "include/visualmode.h"
 
 // Refresh the screens
 void Refresh(void) {

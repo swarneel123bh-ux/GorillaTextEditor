@@ -1,3 +1,53 @@
+build/
+*.o
+*.d
 *.out
-*.txt
-*.out.dSYM
+
+# Executables
+*.exe
+*.elf
+*.bin
+main
+main_debug
+
+# macOS artifacts
+*.dSYM/
+.DS_Store
+
+# Linux core dumps
+core
+core.*
+
+# Windows
+Thumbs.db
+*.stackdump
+
+# Debug symbols
+*.pdb
+
+# Logs
+*.log
+
+# Temporary files
+*~
+*.swp
+*.swo
+
+# IDE / Editor
+.vscode/
+.idea/
+*.code-workspace
+
+# Python (you have build.py)
+__pycache__/
+*.pyc
+
+# Test artifacts (optional)
+# Uncomment if tests are generated, not source-controlled
+# tests/
+
+# Make artifacts
+Makefile.bak
+
+# Misc
+.env

@@ -1,5 +1,5 @@
-#include "inputmode.h"
-#include "visualmode.h"
+#include "include/inputmode.h"
+#include "include/visualmode.h"
 
 // After loading from memory, simply prints out to imscr
 void PrintLoadedFile(void) {

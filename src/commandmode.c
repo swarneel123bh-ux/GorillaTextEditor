@@ -1,5 +1,5 @@
-#include "commandmode.h"
-#include "general.h"
+#include "include/commandmode.h"
+#include "include/general.h"
 
 // Do whatever is to be done, return a value that acts as a signal
 int RunCommandMode(void) {

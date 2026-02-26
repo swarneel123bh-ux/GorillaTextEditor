@@ -3,10 +3,10 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ncurses.h>
-#include "commandmode.h"
-#include "inputmode.h"
-#include "visualmode.h"
-#include "general.h"
+#include "include/commandmode.h"
+#include "include/inputmode.h"
+#include "include/visualmode.h"
+#include "include/general.h"
 
 int main(int argc, char** argv) {
     // Initial setup
