@@ -2,6 +2,8 @@
 #include "include/general.h"
 #include "include/inputmode.h"
 
+int visualmodeactve;
+
 // Do all the stuff, including highlighting, copy/cut to clipboard (NEED TO DEFINE CLIPBOARD)
 int RunVisualMode(void) {
     visualmodeactve = 1;

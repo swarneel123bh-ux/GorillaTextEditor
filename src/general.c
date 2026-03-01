@@ -8,6 +8,23 @@
 #include "include/inputmode.h"
 #include "include/visualmode.h"
 
+bool running;                   // Exit flag
+bool dirty;                     // Write-require check
+int currentMode;                // State flag
+char filename[FILENAME_MAX];    // is what its named, idk where FILENAME_MAX const comes from stdio.h file
+int stdscrstarty, stdscrstartx, stdscrendy, stdscrendx, stdscrnlines, stdscrncols;
+int imscrstarty, imscrstartx, imscrendy, imscrendx, imscrnlines, imscrncols;
+int cmscrstarty, cmscrstartx, cmscrendy, cmscrendx, cmscrnlines, cmscrncols;
+int imscrbgstarty, imscrbgstartx, imscrbgendy, imscrbgendx, imscrbgnlines, imscrbgncols;
+int cmscrbgstarty, cmscrbgstartx, cmscrbgendy, cmscrbgendx, cmscrbgnlines, cmscrbgncols;
+WINDOW* imscr;      // Actual data screen where we can edit text
+WINDOW* imscrbg;    // Just to make drawing background easy
+WINDOW* cmscr;      // Actual terminal screen to edit commands
+WINDOW* cmscrbg;    // Just to make drawing background easy
+int sx, sy, mx, my;   // x,y are screen coords, will be limited by dimensions,
+lineArr lines;      // Struct to contain text data in structured format
+clipboard cb;       // Clipboard struct, to be used for copy-paste-cut-paste functionality
+
 // Refresh the screens
 void Refresh(void) {
     wrefresh(cmscr);
