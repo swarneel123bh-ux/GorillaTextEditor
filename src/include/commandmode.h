@@ -3,4 +3,4 @@
 
 int RunCommandMode(void);
 
-#endif  // COMMANDMODE_H
+#endif // COMMANDMODE_H

@@ -13,6 +13,7 @@ int main(int argc, char** argv) {
     initscr();
     noecho();
     cbreak();
+    // raw();
     start_color();
     getmaxyx(stdscr, stdscrendy, stdscrendx); stdscrendy --; stdscrendx --; // Reduction by 1 is necessary, idk why
     stdscrstarty = stdscrstartx = 0;
